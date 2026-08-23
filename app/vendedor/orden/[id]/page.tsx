@@ -61,7 +61,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     if (!orderId) return
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items(*, products(nombre, codigo))')
+      .select('*, order_items(*, products(nombre))')
       .eq('id', orderId)
       .single()
 
