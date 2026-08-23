@@ -185,6 +185,8 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
   const [mostrarPrecioCustom, setMostrarPrecioCustom] = useState(false)
 
   const puedeAjustar = producto.permite_ajuste_precio
+  // El precio de liquidación (precio_min) es un piso: no se puede vender por debajo.
+  const precioInvalido = puedeAjustar && (precio < producto.precio_min || precio > producto.precio_max)
 
   return (
     <div className="card flex flex-col h-full">
@@ -209,15 +211,22 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
               <input
                 type="number"
                 value={precio}
-                onChange={(e) => setPrecio(parseFloat(e.target.value))}
+                onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
                 min={producto.precio_min}
                 max={producto.precio_max}
-                className="input-field text-sm"
+                className={`input-field text-sm ${precioInvalido ? 'border-red-500 border-2' : ''}`}
               />
             ) : (
-              <div className="bg-neo-light p-2 rounded font-bold text-sm">
+              <div className={`p-2 rounded font-bold text-sm ${precioInvalido ? 'bg-red-100 text-red-700' : 'bg-neo-light'}`}>
                 {formatCurrency(precio)}
               </div>
+            )}
+            {precioInvalido && (
+              <p className="text-xs text-red-600 font-bold mt-1">
+                {precio < producto.precio_min
+                  ? `No podés vender por debajo del precio de liquidación (${formatCurrency(producto.precio_min)})`
+                  : `El precio no puede superar ${formatCurrency(producto.precio_max)}`}
+              </p>
             )}
             <button
               type="button"
@@ -253,8 +262,10 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
       </div>
 
       <button
-        className="btn-primary text-sm"
+        className="btn-primary text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        disabled={precioInvalido || cantidad <= 0}
         onClick={() => {
+          if (precioInvalido) return
           onAgregar(producto, cantidad, puedeAjustar ? precio : undefined)
           setCantidad(0)
         }}

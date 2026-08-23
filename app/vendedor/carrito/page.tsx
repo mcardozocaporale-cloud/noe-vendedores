@@ -11,6 +11,13 @@ interface Product {
   nombre: string
 }
 
+interface ProductPriceCheck {
+  id: string
+  precio_min: number | null
+  precio_max: number | null
+  permite_ajuste_precio: boolean
+}
+
 interface CartItem {
   product: Product
   cantidad: number
@@ -111,6 +118,39 @@ export default function CarritoVendedor() {
     setError('')
 
     try {
+      // Re-validar precios contra la base de datos ANTES de confirmar.
+      // El precio de liquidación (precio_min) es un piso: no se puede vender por debajo,
+      // sin importar lo que haya quedado guardado en el carrito local.
+      const productIds = carrito.map(item => item.product.id)
+      const { data: productosActuales, error: precioError } = await supabase
+        .from('products')
+        .select('id, precio_min, precio_max, permite_ajuste_precio')
+        .in('id', productIds)
+
+      if (precioError || !productosActuales) {
+        throw new Error('No se pudieron validar los precios. Intenta de nuevo.')
+      }
+
+      const porId = new Map<string, ProductPriceCheck>(productosActuales.map(p => [p.id, p]))
+      const itemsInvalidos: string[] = []
+
+      for (const item of carrito) {
+        const actual = porId.get(item.product.id)
+        if (!actual || !actual.permite_ajuste_precio) continue
+        if (actual.precio_min != null && item.precio < actual.precio_min) {
+          itemsInvalidos.push(`${item.product.nombre}: no puede ser menor a ${formatCurrency(actual.precio_min)}`)
+        }
+        if (actual.precio_max != null && item.precio > actual.precio_max) {
+          itemsInvalidos.push(`${item.product.nombre}: no puede superar ${formatCurrency(actual.precio_max)}`)
+        }
+      }
+
+      if (itemsInvalidos.length > 0) {
+        setError(`Hay precios fuera del rango permitido:\n${itemsInvalidos.join('\n')}`)
+        setLoading(false)
+        return
+      }
+
       const numeroOrden = generateOrderNumber()
       const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
 
@@ -190,7 +230,7 @@ export default function CarritoVendedor() {
         <h1 className="text-3xl font-bold mb-6">Confirmar Pedido</h1>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 whitespace-pre-line">
             {error}
           </div>
         )}
