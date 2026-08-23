@@ -1,0 +1,72 @@
+-- Crear tabla de Vendedores
+CREATE TABLE IF NOT EXISTS vendors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  nombre TEXT NOT NULL,
+  empresa TEXT,
+  telefono TEXT,
+  direccion TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Crear tabla de Productos
+CREATE TABLE IF NOT EXISTS products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre TEXT NOT NULL,
+  descripcion TEXT,
+  categoria TEXT,
+  precio_unitario DECIMAL(10,2),
+  precio_bulto DECIMAL(10,2),
+  factor_bulto INT DEFAULT 1,
+  precio_min DECIMAL(10,2),
+  precio_max DECIMAL(10,2),
+  stock INT DEFAULT 100,
+  imagen_base64 TEXT,
+  permite_ajuste_precio BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Crear tabla de Órdenes
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id UUID REFERENCES vendors(id) ON DELETE CASCADE,
+  numero_orden TEXT UNIQUE,
+  estado TEXT DEFAULT 'pendiente',
+  total DECIMAL(10,2),
+  datos_comprador JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Crear tabla de Items de Órdenes
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id),
+  cantidad INT,
+  precio_unitario DECIMAL(10,2),
+  subtotal DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Agregar vendor de prueba
+INSERT INTO vendors (email, password_hash, nombre, empresa, telefono, direccion)
+VALUES ('admin@neomercado.com', '$2a$10$0qjfKyXnDSxKcNqQFgAILeaMiXFXKqTjT7OyqjwKB3Jz7OdFKfKuq', 'Admin Neo', 'Neo Mercado S.A.', '5492494219951', 'Tandil, Buenos Aires')
+ON CONFLICT (email) DO NOTHING;
+
+-- AGREGAR 10 PRODUCTOS DE PRUEBA (podés agregar más después)
+INSERT INTO products (nombre, descripcion, categoria, precio_unitario, precio_bulto, factor_bulto, stock, permite_ajuste_precio) VALUES
+('Harina PUREZA 0000 kilo','Harina de trigo 0000 ultra refinada, bolsa 1kg','Harinas',1250,1089,10,100,FALSE),
+('Harina PUREZA leudante kilo','Harina leudante ultra refinada para repostería casera, bolsa 1kg','Harinas',1665,1525,10,100,FALSE),
+('Fideos SOL PAMPEANO 500g','Tallarín o Spaghetti, fideos secos','Fideos',910,790,20,100,FALSE),
+('Arroz GALLO l/f 500g','Arroz largo fino Gallo, todo uso','Arroces',1145,1049,10,100,FALSE),
+('Puré de tomate OKEY 520g','Puré de tomate clásico','Salsas',715,655,24,100,FALSE),
+('Aceite OKEY mezcla 900cc','Aceite mezcla','Aceites',2519,2229,12,100,TRUE),
+('Mayonesa NATURA 250g','Mayonesa, doypack','Aderezos',1589,1455,12,100,FALSE),
+('Leche SERENISIMA 3% tetra lt','Leche larga vida','Lácteos',2770,2539,12,100,FALSE),
+('PROVIDENCIA tripack','Galletitas dulces, pack x3','Galletitas',1390,1269,16,100,FALSE),
+('Yerba MAROLIO 500g','Yerba mate tradicional','Yerba e Infusiones',1489,1359,10,100,FALSE);
+
+-- Crear índices
+CREATE INDEX IF NOT EXISTS idx_products_categoria ON products(categoria);
+CREATE INDEX IF NOT EXISTS idx_products_stock ON products(stock);
