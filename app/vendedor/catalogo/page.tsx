@@ -182,12 +182,17 @@ interface ProductoCardVendedorProps {
 
 function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps) {
   const [cantidad, setCantidad] = useState(0)
-  const [precio, setPrecio] = useState(producto.precio_unitario)
-  const [mostrarPrecioCustom, setMostrarPrecioCustom] = useState(false)
+  const [negociando, setNegociando] = useState(false) // negociar precio es OPCIONAL
+  const [precioNegociado, setPrecioNegociado] = useState(producto.precio_min ?? producto.precio_unitario)
 
   const puedeAjustar = producto.permite_ajuste_precio
-  // El precio de liquidación (precio_min) es un piso: no se puede vender por debajo.
-  const precioInvalido = puedeAjustar && (precio < producto.precio_min || precio > producto.precio_max)
+  // Precio automático: pasa a "bulto" solo al alcanzar la cantidad del pack (factor_bulto).
+  const enModoBulto = cantidad >= producto.factor_bulto
+  const precioAutomatico = enModoBulto ? producto.precio_bulto : producto.precio_unitario
+  // El precio final es el negociado SOLO si el vendedor activó la negociación; si no, el automático.
+  const precioFinal = negociando ? precioNegociado : precioAutomatico
+  // El precio de liquidación (precio_min) es un piso: no se puede vender por debajo, solo aplica mientras se negocia.
+  const precioInvalido = negociando && (precioNegociado < producto.precio_min || precioNegociado > producto.precio_max)
 
   return (
     <div className="card flex flex-col h-full">
@@ -211,53 +216,68 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
       <h4 className="font-bold text-sm mb-1">{producto.nombre}</h4>
       <p className="text-xs text-gray-600 mb-2 flex-1">{producto.descripcion}</p>
 
-      {/* Precio unitario y precio por bulto: siempre visibles */}
+      {/* Precio unitario y precio por bulto: siempre visibles, se resalta el que aplica según cantidad */}
       <div className="flex flex-col gap-1 mb-2 text-xs">
-        <div className="p-2 rounded bg-gray-100">
+        <div className={`p-2 rounded ${!negociando && !enModoBulto ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
           <b>{formatCurrency(producto.precio_unitario)}</b> unitario
         </div>
-        <div className="p-2 rounded bg-gray-100">
+        <div className={`p-2 rounded ${!negociando && enModoBulto ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
           <b>{formatCurrency(producto.precio_bulto * producto.factor_bulto)}</b> bulto x{producto.factor_bulto}
         </div>
+        {cantidad > 0 && !negociando && (
+          <p className="text-[11px] text-gray-500">
+            {enModoBulto
+              ? `Precio por bulto aplicado (alcanzaste ${producto.factor_bulto} o más unidades)`
+              : `Llegando a ${producto.factor_bulto} unidades pasa a precio por bulto`}
+          </p>
+        )}
       </div>
 
-      <div className="mb-3">
-        {puedeAjustar ? (
-          <div>
-            <div className="text-xs font-bold text-neo-orange mb-1">
-              Precio especial: {formatCurrency(producto.precio_min)} - {formatCurrency(producto.precio_max)}
-            </div>
-            {mostrarPrecioCustom ? (
+      {/* Negociar precio: es OPCIONAL, solo si el producto lo permite */}
+      {puedeAjustar && (
+        <div className="mb-3 border-t pt-2">
+          {!negociando ? (
+            <button
+              type="button"
+              className="text-xs text-neo-orange font-bold"
+              onClick={() => {
+                setPrecioNegociado(producto.precio_min)
+                setNegociando(true)
+              }}
+            >
+              💬 Negociar precio (opcional)
+            </button>
+          ) : (
+            <div>
+              <div className="text-xs font-bold text-neo-orange mb-1">
+                Precio especial: {formatCurrency(producto.precio_min)} - {formatCurrency(producto.precio_max)}
+              </div>
               <input
                 type="number"
-                value={precio}
-                onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
+                value={precioNegociado}
+                onChange={(e) => setPrecioNegociado(parseFloat(e.target.value) || 0)}
                 min={producto.precio_min}
                 max={producto.precio_max}
                 className={`input-field text-sm ${precioInvalido ? 'border-red-500 border-2' : ''}`}
               />
-            ) : (
-              <div className={`p-2 rounded font-bold text-sm ${precioInvalido ? 'bg-red-100 text-red-700' : 'bg-neo-light'}`}>
-                {formatCurrency(precio)}
-              </div>
-            )}
-            {precioInvalido && (
-              <p className="text-xs text-red-600 font-bold mt-1">
-                {precio < producto.precio_min
-                  ? `No podés vender por debajo del precio de liquidación (${formatCurrency(producto.precio_min)})`
-                  : `El precio no puede superar ${formatCurrency(producto.precio_max)}`}
-              </p>
-            )}
-            <button
-              type="button"
-              className="text-xs text-neo-orange font-bold mt-1"
-              onClick={() => setMostrarPrecioCustom(!mostrarPrecioCustom)}
-            >
-              {mostrarPrecioCustom ? 'Confirmar' : 'Ajustar precio'}
-            </button>
-          </div>
-        ) : null}
-      </div>
+              {precioInvalido && (
+                <p className="text-xs text-red-600 font-bold mt-1">
+                  {precioNegociado < producto.precio_min
+                    ? `No podés vender por debajo del precio de liquidación (${formatCurrency(producto.precio_min)})`
+                    : `El precio no puede superar ${formatCurrency(producto.precio_max)}`}
+                </p>
+              )}
+              <button
+                type="button"
+                className="text-xs text-gray-500 font-bold mt-1"
+                onClick={() => setNegociando(false)}
+              >
+                Cancelar negociación
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 mb-3">
         <button
@@ -282,8 +302,9 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
         disabled={precioInvalido || cantidad <= 0}
         onClick={() => {
           if (precioInvalido) return
-          onAgregar(producto, cantidad, puedeAjustar ? precio : undefined)
+          onAgregar(producto, cantidad, precioFinal)
           setCantidad(0)
+          setNegociando(false)
         }}
       >
         Agregar

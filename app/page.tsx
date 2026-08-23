@@ -218,7 +218,8 @@ interface ProductoCardProps {
 
 function ProductoCard({ producto, onAgregar }: ProductoCardProps) {
   const [cantidad, setCantidad] = useState(0)
-  const [modo, setModo] = useState<'unitario' | 'bulto'>('unitario')
+  // El precio pasa a "bulto" automáticamente al alcanzar la cantidad del pack (factor_bulto).
+  const modo: 'unitario' | 'bulto' = cantidad >= producto.factor_bulto ? 'bulto' : 'unitario'
 
   return (
     <div className="card flex flex-col">
@@ -247,21 +248,13 @@ function ProductoCard({ producto, onAgregar }: ProductoCardProps) {
         <div className={`p-2 rounded ${modo === 'bulto' ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
           <b>{formatCurrency(producto.precio_bulto * producto.factor_bulto)}</b> bulto x{producto.factor_bulto}
         </div>
-      </div>
-
-      <div className="flex gap-2 mb-3">
-        <button
-          className={`flex-1 py-1 text-xs font-bold rounded ${modo === 'unitario' ? 'bg-neo-dark text-white' : 'bg-gray-200'}`}
-          onClick={() => setModo('unitario')}
-        >
-          Unitario
-        </button>
-        <button
-          className={`flex-1 py-1 text-xs font-bold rounded ${modo === 'bulto' ? 'bg-neo-dark text-white' : 'bg-gray-200'}`}
-          onClick={() => setModo('bulto')}
-        >
-          Bulto
-        </button>
+        {cantidad > 0 && (
+          <p className="text-[11px] text-gray-500">
+            {modo === 'bulto'
+              ? `Precio por bulto aplicado (alcanzaste ${producto.factor_bulto} o más unidades)`
+              : `Llegando a ${producto.factor_bulto} unidades pasa a precio por bulto`}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-2 mb-3">

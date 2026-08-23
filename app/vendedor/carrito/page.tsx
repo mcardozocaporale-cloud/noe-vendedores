@@ -15,6 +15,8 @@ interface ProductPriceCheck {
   id: string
   precio_min: number | null
   precio_max: number | null
+  precio_unitario: number
+  precio_bulto: number
   permite_ajuste_precio: boolean
 }
 
@@ -124,7 +126,7 @@ export default function CarritoVendedor() {
       const productIds = carrito.map(item => item.product.id)
       const { data: productosActuales, error: precioError } = await supabase
         .from('products')
-        .select('id, precio_min, precio_max, permite_ajuste_precio')
+        .select('id, precio_min, precio_max, precio_unitario, precio_bulto, permite_ajuste_precio')
         .in('id', productIds)
 
       if (precioError || !productosActuales) {
@@ -137,6 +139,14 @@ export default function CarritoVendedor() {
       for (const item of carrito) {
         const actual = porId.get(item.product.id)
         if (!actual || !actual.permite_ajuste_precio) continue
+
+        // Si el precio coincide con el unitario o bulto normal, es venta al precio de lista
+        // (no negoció), no corresponde validar contra el rango especial.
+        const esPrecioDeLista =
+          Math.abs(item.precio - actual.precio_unitario) < 0.01 ||
+          Math.abs(item.precio - actual.precio_bulto) < 0.01
+        if (esPrecioDeLista) continue
+
         if (actual.precio_min != null && item.precio < actual.precio_min) {
           itemsInvalidos.push(`${item.product.nombre}: no puede ser menor a ${formatCurrency(actual.precio_min)}`)
         }
