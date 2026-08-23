@@ -25,30 +25,68 @@ interface CartItem {
   modo: 'unitario' | 'bulto'
 }
 
+const PRODUCTOS_POR_PAGINA = 20
+
 export default function CatalogPublico() {
   const [productos, setProductos] = useState<Product[]>([])
+  const [categorias, setCategorias] = useState<string[]>([])
+  const [filtroCategoria, setFiltroCategoria] = useState<string | null>(null)
+  const [pagina, setPagina] = useState(1)
+  const [totalProductos, setTotalProductos] = useState(0)
   const [carrito, setCarrito] = useState<CartItem[]>([])
   const [cliente, setCliente] = useState({ nombre: '', telefono: '', direccion: '' })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    cargarProductos()
+    cargarCategorias()
   }, [])
 
+  useEffect(() => {
+    cargarProductos()
+  }, [filtroCategoria, pagina])
+
+  // Al cambiar de categoría, volvemos a la página 1
+  useEffect(() => {
+    setPagina(1)
+  }, [filtroCategoria])
+
+  async function cargarCategorias() {
+    // Consulta liviana (sin imágenes) solo para armar la lista de categorías
+    const { data } = await supabase.from('products').select('categoria').gt('stock', 0)
+    if (data) {
+      setCategorias(Array.from(new Set(data.map(p => p.categoria))).sort())
+    }
+  }
+
   async function cargarProductos() {
-    const { data, error } = await supabase
+    setLoading(true)
+    const desde = (pagina - 1) * PRODUCTOS_POR_PAGINA
+    const hasta = desde + PRODUCTOS_POR_PAGINA - 1
+
+    let query = supabase
       .from('products')
-      .select('*')
+      .select('*', { count: 'exact' })
       .gt('stock', 0)
       .order('categoria')
+      .order('nombre')
+      .range(desde, hasta)
+
+    if (filtroCategoria) {
+      query = query.eq('categoria', filtroCategoria)
+    }
+
+    const { data, error, count } = await query
 
     if (error) {
       console.error('Error cargando productos:', error)
     } else {
       setProductos(data || [])
+      setTotalProductos(count || 0)
     }
     setLoading(false)
   }
+
+  const totalPaginas = Math.max(1, Math.ceil(totalProductos / PRODUCTOS_POR_PAGINA))
 
   function agregarAlCarrito(producto: Product, cantidad: number, modo: 'unitario' | 'bulto') {
     if (cantidad <= 0) return
@@ -94,7 +132,7 @@ export default function CatalogPublico() {
 
   const urlWhatsApp = `https://wa.me/5492494219951?text=${encodeURIComponent(generarMensajeWhatsApp())}`
 
-  if (loading) return <div className="text-center py-20">Cargando catálogo...</div>
+  if (loading && categorias.length === 0) return <div className="text-center py-20">Cargando catálogo...</div>
 
   return (
     <div className="min-h-screen bg-white">
@@ -139,23 +177,71 @@ export default function CatalogPublico() {
           />
         </div>
 
-        {/* Categorías y Productos */}
-        {Array.from(new Set(productos.map(p => p.categoria))).map(categoria => (
-          <div key={categoria} className="mb-8">
-            <h3 className="text-xl font-bold border-b-2 border-neo-dark mb-4">
-              {categoria} <span className="text-xs text-gray-500">({productos.filter(p => p.categoria === categoria).length})</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {productos.filter(p => p.categoria === categoria).map(producto => (
-                <ProductoCard
-                  key={producto.id}
-                  producto={producto}
-                  onAgregar={agregarAlCarrito}
-                />
-              ))}
-            </div>
+        {/* Filtro de categorías */}
+        <div className="mb-6 flex gap-2 flex-wrap">
+          <button
+            onClick={() => setFiltroCategoria(null)}
+            className={`px-4 py-2 rounded font-bold text-sm ${
+              filtroCategoria === null ? 'bg-neo-orange text-white' : 'bg-neo-light'
+            }`}
+          >
+            Todas
+          </button>
+          {categorias.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFiltroCategoria(cat)}
+              className={`px-4 py-2 rounded font-bold text-sm ${
+                filtroCategoria === cat ? 'bg-neo-orange text-white' : 'bg-neo-light'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Productos (paginados) */}
+        <div className="mb-3 text-sm text-gray-600">
+          {totalProductos} producto{totalProductos !== 1 ? 's' : ''}
+          {filtroCategoria ? ` en "${filtroCategoria}"` : ''}
+        </div>
+
+        {loading ? (
+          <div className="text-center py-16 text-gray-500">Cargando productos...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {productos.map(producto => (
+              <ProductoCard
+                key={producto.id}
+                producto={producto}
+                onAgregar={agregarAlCarrito}
+              />
+            ))}
           </div>
-        ))}
+        )}
+
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="flex justify-center items-center gap-3 my-8">
+            <button
+              className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={pagina <= 1 || loading}
+              onClick={() => { setPagina(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            >
+              ← Anterior
+            </button>
+            <span className="text-sm font-bold">
+              Página {pagina} de {totalPaginas}
+            </span>
+            <button
+              className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={pagina >= totalPaginas || loading}
+              onClick={() => { setPagina(p => Math.min(totalPaginas, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
 
         {/* Resumen Reparto */}
         <div className="bg-neo-light border border-gray-300 rounded-lg p-6 text-center my-8">

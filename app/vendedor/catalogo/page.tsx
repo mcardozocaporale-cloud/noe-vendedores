@@ -28,12 +28,17 @@ interface CartItem {
   precio: number
 }
 
+const PRODUCTOS_POR_PAGINA = 20
+
 export default function CatalogoVendedor() {
   const router = useRouter()
   const [productos, setProductos] = useState<Product[]>([])
+  const [categorias, setCategorias] = useState<string[]>([])
   const [carrito, setCarrito] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroCategoria, setFiltroCategoria] = useState<string | null>(null)
+  const [pagina, setPagina] = useState(1)
+  const [totalProductos, setTotalProductos] = useState(0)
 
   useEffect(() => {
     const session = getSession()
@@ -42,22 +47,54 @@ export default function CatalogoVendedor() {
       return
     }
 
-    cargarProductos()
+    cargarCategorias()
     cargarCarrito()
   }, [router])
 
+  useEffect(() => {
+    const session = getSession()
+    if (!session) return
+    cargarProductos()
+  }, [filtroCategoria, pagina])
+
+  useEffect(() => {
+    setPagina(1)
+  }, [filtroCategoria])
+
+  async function cargarCategorias() {
+    const { data } = await supabase.from('products').select('categoria').gt('stock', 0)
+    if (data) {
+      setCategorias(Array.from(new Set(data.map(p => p.categoria))).sort())
+    }
+  }
+
   async function cargarProductos() {
-    const { data } = await supabase
+    setLoading(true)
+    const desde = (pagina - 1) * PRODUCTOS_POR_PAGINA
+    const hasta = desde + PRODUCTOS_POR_PAGINA - 1
+
+    let query = supabase
       .from('products')
-      .select('*')
+      .select('*', { count: 'exact' })
       .gt('stock', 0)
       .order('categoria')
+      .order('nombre')
+      .range(desde, hasta)
+
+    if (filtroCategoria) {
+      query = query.eq('categoria', filtroCategoria)
+    }
+
+    const { data, count } = await query
 
     if (data) {
       setProductos(data)
+      setTotalProductos(count || 0)
     }
     setLoading(false)
   }
+
+  const totalPaginas = Math.max(1, Math.ceil(totalProductos / PRODUCTOS_POR_PAGINA))
 
   function cargarCarrito() {
     const carritoGuardado = localStorage.getItem('carrito_vendedor')
@@ -92,14 +129,9 @@ export default function CatalogoVendedor() {
     guardarCarrito(nuevoCarrito)
   }
 
-  const categorias = Array.from(new Set(productos.map(p => p.categoria)))
-  const productosFiltrados = filtroCategoria
-    ? productos.filter(p => p.categoria === filtroCategoria)
-    : productos
-
   const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
 
-  if (loading) return <div className="text-center py-20">Cargando...</div>
+  if (loading && categorias.length === 0) return <div className="text-center py-20">Cargando...</div>
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -147,15 +179,47 @@ export default function CatalogoVendedor() {
         </div>
 
         {/* Productos */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {productosFiltrados.map(producto => (
-            <ProductoCardVendedor
-              key={producto.id}
-              producto={producto}
-              onAgregar={agregarAlCarrito}
-            />
-          ))}
+        <div className="mb-3 text-sm text-gray-600">
+          {totalProductos} producto{totalProductos !== 1 ? 's' : ''}
+          {filtroCategoria ? ` en "${filtroCategoria}"` : ''}
         </div>
+
+        {loading ? (
+          <div className="text-center py-16 text-gray-500">Cargando productos...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+            {productos.map(producto => (
+              <ProductoCardVendedor
+                key={producto.id}
+                producto={producto}
+                onAgregar={agregarAlCarrito}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="flex justify-center items-center gap-3 my-8">
+            <button
+              className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={pagina <= 1 || loading}
+              onClick={() => { setPagina(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            >
+              ← Anterior
+            </button>
+            <span className="text-sm font-bold">
+              Página {pagina} de {totalPaginas}
+            </span>
+            <button
+              className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={pagina >= totalPaginas || loading}
+              onClick={() => { setPagina(p => Math.min(totalPaginas, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Resumen Carrito */}
