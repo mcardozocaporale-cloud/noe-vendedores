@@ -10,6 +10,7 @@ interface Product {
   nombre: string
   descripcion: string
   categoria: string
+  codigo: string | null
   precio_unitario: number
   precio_bulto: number
   factor_bulto: number
@@ -221,8 +222,13 @@ function ProductoCard({ producto, onAgregar }: ProductoCardProps) {
 
   return (
     <div className="card flex flex-col">
-      <div className="bg-purple-100 text-xs font-bold px-2 py-1 rounded mb-2 w-fit">
-        Bulto x{producto.factor_bulto}
+      <div className="flex justify-between items-start mb-2">
+        <div className="bg-purple-100 text-xs font-bold px-2 py-1 rounded w-fit">
+          Bulto x{producto.factor_bulto}
+        </div>
+        {producto.codigo && (
+          <div className="text-[10px] text-gray-400 font-mono">#{producto.codigo}</div>
+        )}
       </div>
       {producto.imagen_base64 && (
         <img

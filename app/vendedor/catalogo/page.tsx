@@ -11,6 +11,7 @@ interface Product {
   nombre: string
   descripcion: string
   categoria: string
+  codigo: string | null
   precio_unitario: number
   precio_bulto: number
   factor_bulto: number
@@ -190,6 +191,15 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
 
   return (
     <div className="card flex flex-col h-full">
+      <div className="flex justify-between items-start mb-2">
+        <div className="bg-purple-100 text-xs font-bold px-2 py-1 rounded w-fit">
+          Bulto x{producto.factor_bulto}
+        </div>
+        {producto.codigo && (
+          <div className="text-[10px] text-gray-400 font-mono">#{producto.codigo}</div>
+        )}
+      </div>
+
       {producto.imagen_base64 && (
         <img
           src={`data:image/png;base64,${producto.imagen_base64}`}
@@ -201,11 +211,21 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
       <h4 className="font-bold text-sm mb-1">{producto.nombre}</h4>
       <p className="text-xs text-gray-600 mb-2 flex-1">{producto.descripcion}</p>
 
+      {/* Precio unitario y precio por bulto: siempre visibles */}
+      <div className="flex flex-col gap-1 mb-2 text-xs">
+        <div className="p-2 rounded bg-gray-100">
+          <b>{formatCurrency(producto.precio_unitario)}</b> unitario
+        </div>
+        <div className="p-2 rounded bg-gray-100">
+          <b>{formatCurrency(producto.precio_bulto * producto.factor_bulto)}</b> bulto x{producto.factor_bulto}
+        </div>
+      </div>
+
       <div className="mb-3">
         {puedeAjustar ? (
           <div>
-            <div className="text-xs text-gray-600 mb-1">
-              Rango: {formatCurrency(producto.precio_min)} - {formatCurrency(producto.precio_max)}
+            <div className="text-xs font-bold text-neo-orange mb-1">
+              Precio especial: {formatCurrency(producto.precio_min)} - {formatCurrency(producto.precio_max)}
             </div>
             {mostrarPrecioCustom ? (
               <input
@@ -236,11 +256,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
               {mostrarPrecioCustom ? 'Confirmar' : 'Ajustar precio'}
             </button>
           </div>
-        ) : (
-          <div className="bg-neo-light p-2 rounded font-bold text-sm">
-            {formatCurrency(producto.precio_unitario)}
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="flex items-center gap-2 mb-3">
