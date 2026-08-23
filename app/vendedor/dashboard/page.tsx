@@ -80,8 +80,8 @@ export default function DashboardVendedor() {
             <p className="text-sm opacity-90">Bienvenido, {vendor?.nombre}</p>
           </div>
           <div className="flex gap-3">
-            <Link href="/vendedor/catalogo" className="btn-secondary">
-              📦 Ver Catálogo
+            <Link href="/vendedor/clientes" className="btn-primary">
+              ⊕ Nuevo Pedido
             </Link>
             <Link href="/vendedor/carrito" className="btn-secondary">
               🛒 Mi Carrito
@@ -118,7 +118,7 @@ export default function DashboardVendedor() {
         <div className="card">
           <h2 className="text-xl font-bold mb-4">Historial de Pedidos</h2>
           {ordenes.length === 0 ? (
-            <p className="text-gray-600">No tienes pedidos aún. <Link href="/vendedor/catalogo" className="text-neo-orange font-bold">Ir al catálogo</Link></p>
+            <p className="text-gray-600">No tienes pedidos aún. <Link href="/vendedor/clientes" className="text-neo-orange font-bold">Crear tu primer pedido</Link></p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

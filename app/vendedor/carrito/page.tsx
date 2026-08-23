@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSession, formatCurrency, generateOrderNumber } from '@/lib/auth'
+import { getSession, formatCurrency, generateOrderNumber, getClienteActivo, clearClienteActivo, ClienteActivo } from '@/lib/auth'
 
 interface Product {
   id: string
@@ -26,25 +26,12 @@ interface CartItem {
   precio: number
 }
 
-interface DatosComprador {
-  nombre: string
-  empresa: string
-  telefono: string
-  direccion: string
-  ciudad: string
-}
-
 export default function CarritoVendedor() {
   const router = useRouter()
   const [carrito, setCarrito] = useState<CartItem[]>([])
   const [vendor, setVendor] = useState<any>(null)
-  const [datosComprador, setDatosComprador] = useState<DatosComprador>({
-    nombre: '',
-    empresa: '',
-    telefono: '',
-    direccion: '',
-    ciudad: '',
-  })
+  const [cliente, setCliente] = useState<ClienteActivo | null>(null)
+  const [observaciones, setObservaciones] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,6 +41,13 @@ export default function CarritoVendedor() {
       router.push('/vendedor/login')
       return
     }
+
+    const clienteActivo = getClienteActivo()
+    if (!clienteActivo) {
+      router.push('/vendedor/clientes')
+      return
+    }
+    setCliente(clienteActivo)
 
     cargarDatos(session.vendorId)
     cargarCarrito()
@@ -68,13 +62,6 @@ export default function CarritoVendedor() {
 
     if (data) {
       setVendor(data)
-      setDatosComprador({
-        nombre: data.nombre || '',
-        empresa: data.empresa || '',
-        telefono: data.telefono || '',
-        direccion: data.direccion || '',
-        ciudad: '',
-      })
     }
   }
 
@@ -111,8 +98,8 @@ export default function CarritoVendedor() {
       return
     }
 
-    if (!datosComprador.nombre || !datosComprador.empresa) {
-      setError('Completa nombre y empresa del comprador')
+    if (!cliente) {
+      setError('No hay un cliente seleccionado para este pedido')
       return
     }
 
@@ -164,11 +151,23 @@ export default function CarritoVendedor() {
       const numeroOrden = generateOrderNumber()
       const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
 
+      // Snapshot de los datos del cliente al momento del pedido (aunque después cambien sus datos)
+      const datosComprador = {
+        nombre: `${cliente.nombre} ${cliente.apellido}`.trim(),
+        empresa: cliente.empresa || '',
+        telefono: cliente.telefono || '',
+        direccion: cliente.direccion || '',
+        ciudad: cliente.localidad || '',
+        horario_recepcion: cliente.horario_recepcion || '',
+        observaciones,
+      }
+
       // Crear orden
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
           vendor_id: vendor.id,
+          cliente_id: cliente.id,
           numero_orden: numeroOrden,
           estado: 'pendiente',
           total,
@@ -198,8 +197,9 @@ export default function CarritoVendedor() {
         throw new Error('Error al agregar items a la orden')
       }
 
-      // Limpiar carrito
+      // Limpiar carrito y cliente activo (el próximo pedido arranca eligiendo cliente de nuevo)
       localStorage.removeItem('carrito_vendedor')
+      clearClienteActivo()
 
       // Redirigir a confirmación
       router.push(`/vendedor/orden/${orderData.id}?new=true`)
@@ -279,55 +279,32 @@ export default function CarritoVendedor() {
               </div>
             </div>
 
-            {/* Datos Comprador */}
+            {/* Datos Cliente */}
             <div className="card">
-              <h2 className="text-xl font-bold mb-4">Datos del Comprador</h2>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-bold mb-1">Nombre *</label>
-                  <input
-                    type="text"
-                    value={datosComprador.nombre}
-                    onChange={(e) => setDatosComprador({ ...datosComprador, nombre: e.target.value })}
-                    className="input-field"
-                  />
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Cliente</h2>
+                <Link href="/vendedor/clientes" className="text-sm text-neo-orange font-bold hover:underline">
+                  Cambiar cliente
+                </Link>
+              </div>
+              {cliente && (
+                <div className="space-y-1 text-sm mb-4">
+                  <p className="font-bold text-base">{cliente.nombre} {cliente.apellido}</p>
+                  {cliente.empresa && <p className="text-gray-600">{cliente.empresa}</p>}
+                  {cliente.telefono && <p>📞 {cliente.telefono}</p>}
+                  {cliente.direccion && <p>📍 {cliente.direccion}{cliente.localidad ? `, ${cliente.localidad}` : ''}</p>}
+                  {cliente.horario_recepcion && <p>🕐 Recibe: {cliente.horario_recepcion}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1">Empresa *</label>
-                  <input
-                    type="text"
-                    value={datosComprador.empresa}
-                    onChange={(e) => setDatosComprador({ ...datosComprador, empresa: e.target.value })}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1">Teléfono</label>
-                  <input
-                    type="tel"
-                    value={datosComprador.telefono}
-                    onChange={(e) => setDatosComprador({ ...datosComprador, telefono: e.target.value })}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1">Dirección</label>
-                  <input
-                    type="text"
-                    value={datosComprador.direccion}
-                    onChange={(e) => setDatosComprador({ ...datosComprador, direccion: e.target.value })}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1">Ciudad</label>
-                  <input
-                    type="text"
-                    value={datosComprador.ciudad}
-                    onChange={(e) => setDatosComprador({ ...datosComprador, ciudad: e.target.value })}
-                    className="input-field"
-                  />
-                </div>
+              )}
+              <div>
+                <label className="block text-sm font-bold mb-1">Observaciones</label>
+                <textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  className="input-field"
+                  rows={3}
+                  placeholder="Notas para este pedido (opcional)"
+                />
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSession, formatCurrency } from '@/lib/auth'
+import { getSession, formatCurrency, getClienteActivo, ClienteActivo } from '@/lib/auth'
 
 interface Product {
   id: string
@@ -41,6 +41,7 @@ export default function CatalogoVendedor() {
   const [totalProductos, setTotalProductos] = useState(0)
   const [busquedaInput, setBusquedaInput] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [cliente, setCliente] = useState<ClienteActivo | null>(null)
 
   useEffect(() => {
     const session = getSession()
@@ -48,6 +49,13 @@ export default function CatalogoVendedor() {
       router.push('/vendedor/login')
       return
     }
+
+    const clienteActivo = getClienteActivo()
+    if (!clienteActivo) {
+      router.push('/vendedor/clientes')
+      return
+    }
+    setCliente(clienteActivo)
 
     cargarCategorias()
     cargarCarrito()
@@ -152,7 +160,16 @@ export default function CatalogoVendedor() {
       <div className="sticky top-0 z-40">
         <header className="bg-neo-orange text-white py-4 px-4">
           <div className="max-w-6xl mx-auto flex justify-between items-center">
-            <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
+            <div>
+              <Link href="/vendedor/dashboard" className="font-bold text-lg block">← NEO MERCADO</Link>
+              {cliente && (
+                <span className="text-xs opacity-90">
+                  Vendiéndole a: <b>{cliente.nombre} {cliente.apellido}</b>
+                  {' · '}
+                  <Link href="/vendedor/clientes" className="underline">cambiar</Link>
+                </span>
+              )}
+            </div>
             <div className="flex gap-3">
               <Link href="/vendedor/carrito" className="relative">
                 <button className="btn-secondary relative">
