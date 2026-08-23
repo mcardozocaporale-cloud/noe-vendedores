@@ -31,15 +31,23 @@ interface Order {
   }
 }
 
-export default function DetalleOrden({ params }: { params: { id: string } }) {
+export default function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const remitRef = useRef<HTMLDivElement>(null)
   const esNuevo = searchParams.get('new') === 'true'
+  const [orderId, setOrderId] = useState<string | null>(null)
 
   useEffect(() => {
+    // Desempaquetar params (que es una Promise en Next.js 15)
+    params.then(p => setOrderId(p.id))
+  }, [params])
+
+  useEffect(() => {
+    if (!orderId) return
+
     const session = getSession()
     if (!session) {
       router.push('/vendedor/login')
@@ -47,13 +55,14 @@ export default function DetalleOrden({ params }: { params: { id: string } }) {
     }
 
     cargarOrden()
-  }, [router, params.id])
+  }, [router, orderId])
 
   async function cargarOrden() {
+    if (!orderId) return
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*, products(nombre, codigo))')
-      .eq('id', params.id)
+      .eq('id', orderId)
       .single()
 
     if (error || !data) {
