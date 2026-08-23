@@ -36,19 +36,27 @@ export default function CatalogPublico() {
   const [carrito, setCarrito] = useState<CartItem[]>([])
   const [cliente, setCliente] = useState({ nombre: '', telefono: '', direccion: '' })
   const [loading, setLoading] = useState(true)
+  const [busquedaInput, setBusquedaInput] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
     cargarCategorias()
   }, [])
 
+  // Debounce: espera a que el usuario deje de tipear para buscar
+  useEffect(() => {
+    const timeout = setTimeout(() => setBusqueda(busquedaInput.trim()), 350)
+    return () => clearTimeout(timeout)
+  }, [busquedaInput])
+
   useEffect(() => {
     cargarProductos()
-  }, [filtroCategoria, pagina])
+  }, [filtroCategoria, pagina, busqueda])
 
-  // Al cambiar de categoría, volvemos a la página 1
+  // Al cambiar de categoría o de búsqueda, volvemos a la página 1
   useEffect(() => {
     setPagina(1)
-  }, [filtroCategoria])
+  }, [filtroCategoria, busqueda])
 
   async function cargarCategorias() {
     // Consulta liviana (sin imágenes) solo para armar la lista de categorías
@@ -73,6 +81,11 @@ export default function CatalogPublico() {
 
     if (filtroCategoria) {
       query = query.eq('categoria', filtroCategoria)
+    }
+
+    if (busqueda) {
+      const texto = busqueda.replace(/,/g, ' ')
+      query = query.or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`)
     }
 
     const { data, error, count } = await query
@@ -144,6 +157,29 @@ export default function CatalogPublico() {
           ¿Eres vendedor? Accede aquí
         </Link>
       </header>
+
+      {/* Buscador fijo */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 p-3 shadow-sm">
+        <div className="max-w-6xl mx-auto flex gap-2 items-center">
+          <span className="text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar por código o nombre/marca..."
+            className="input-field flex-1"
+            value={busquedaInput}
+            onChange={(e) => setBusquedaInput(e.target.value)}
+          />
+          {busquedaInput && (
+            <button
+              className="text-gray-500 font-bold px-2"
+              onClick={() => setBusquedaInput('')}
+              aria-label="Limpiar búsqueda"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Info Banner */}
       <div className="bg-orange-50 border-l-4 border-neo-orange m-4 p-3 rounded text-sm text-gray-700">

@@ -39,6 +39,8 @@ export default function CatalogoVendedor() {
   const [filtroCategoria, setFiltroCategoria] = useState<string | null>(null)
   const [pagina, setPagina] = useState(1)
   const [totalProductos, setTotalProductos] = useState(0)
+  const [busquedaInput, setBusquedaInput] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
     const session = getSession()
@@ -51,15 +53,21 @@ export default function CatalogoVendedor() {
     cargarCarrito()
   }, [router])
 
+  // Debounce: espera a que el usuario deje de tipear para buscar
+  useEffect(() => {
+    const timeout = setTimeout(() => setBusqueda(busquedaInput.trim()), 350)
+    return () => clearTimeout(timeout)
+  }, [busquedaInput])
+
   useEffect(() => {
     const session = getSession()
     if (!session) return
     cargarProductos()
-  }, [filtroCategoria, pagina])
+  }, [filtroCategoria, pagina, busqueda])
 
   useEffect(() => {
     setPagina(1)
-  }, [filtroCategoria])
+  }, [filtroCategoria, busqueda])
 
   async function cargarCategorias() {
     const { data } = await supabase.from('products').select('categoria').gt('stock', 0)
@@ -83,6 +91,11 @@ export default function CatalogoVendedor() {
 
     if (filtroCategoria) {
       query = query.eq('categoria', filtroCategoria)
+    }
+
+    if (busqueda) {
+      const texto = busqueda.replace(/,/g, ' ')
+      query = query.or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`)
     }
 
     const { data, count } = await query
@@ -135,24 +148,47 @@ export default function CatalogoVendedor() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-neo-orange text-white py-4 px-4 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
-          <div className="flex gap-3">
-            <Link href="/vendedor/carrito" className="relative">
-              <button className="btn-secondary relative">
-                🛒 Carrito
-                {carrito.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-                    {carrito.length}
-                  </span>
-                )}
+      {/* Header + Buscador (fijos arriba) */}
+      <div className="sticky top-0 z-40">
+        <header className="bg-neo-orange text-white py-4 px-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
+            <div className="flex gap-3">
+              <Link href="/vendedor/carrito" className="relative">
+                <button className="btn-secondary relative">
+                  🛒 Carrito
+                  {carrito.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                      {carrito.length}
+                    </span>
+                  )}
+                </button>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="bg-white border-b border-gray-200 p-3 shadow-sm">
+          <div className="max-w-6xl mx-auto flex gap-2 items-center">
+            <span className="text-gray-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar por código o nombre/marca..."
+              className="input-field flex-1"
+              value={busquedaInput}
+              onChange={(e) => setBusquedaInput(e.target.value)}
+            />
+            {busquedaInput && (
+              <button
+                className="text-gray-500 font-bold px-2"
+                onClick={() => setBusquedaInput('')}
+                aria-label="Limpiar búsqueda"
+              >
+                ✕
               </button>
-            </Link>
+            )}
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto p-4">
         {/* Filtro Categorías */}
