@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth'
 
-interface Resumen {
+interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
-  ocultados: number
+  desactivados: number
   nuevosSinImagen: string[]
   errores: string[]
 }
@@ -23,7 +23,7 @@ export default function ImportarExcel() {
   const [archivo, setArchivo] = useState<File | null>(null)
   const [categoria, setCategoria] = useState('')
   const [subiendo, setSubiendo] = useState(false)
-  const [resumen, setResumen] = useState<Resumen | null>(null)
+  const [categorias, setCategorias] = useState<ResumenCategoria[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function ImportarExcel() {
 
     setSubiendo(true)
     setError('')
-    setResumen(null)
+    setCategorias(null)
 
     try {
       const formData = new FormData()
@@ -62,7 +62,7 @@ export default function ImportarExcel() {
         throw new Error(data.error || 'Error al procesar el archivo.')
       }
 
-      setResumen(data.resumen)
+      setCategorias(data.categorias)
       setArchivo(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err: any) {
@@ -96,9 +96,10 @@ export default function ImportarExcel() {
       <div className="max-w-2xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-1">Importar Excel</h1>
         <p className="text-gray-600 mb-6">
-          Subí el Excel con la misma estructura de siempre (Código, Producto, Categoría, Subrubro, existencia,
-          pack, costo, precios, activo, especial). Actualiza precios y stock, agrega productos nuevos, y oculta
-          los que ya no figuren en el archivo.
+          Subí el Excel con la estructura habitual (Código, Producto, variedad, Categoría, Subrubro, pack,
+          existencia, Precio, Precio Vol, Precio Liq, Activo, especial). Podés subir varias categorías juntas
+          en el mismo archivo — se procesa cada Subrubro por separado. "Activo" manda: si un producto tiene
+          Activo=0 se desactiva en la web aunque tenga existencia.
         </p>
 
         <form onSubmit={subirArchivo} className="card mb-6">
@@ -137,8 +138,8 @@ export default function ImportarExcel() {
           </button>
         </form>
 
-        {resumen && (
-          <div className="card">
+        {categorias && categorias.map((resumen, idx) => (
+          <div className="card mb-4" key={idx}>
             <h2 className="text-lg font-bold mb-4">✅ Categoría: {resumen.categoria}</h2>
             <div className="grid grid-cols-3 gap-3 mb-4 text-center">
               <div className="bg-green-50 border border-green-200 rounded p-3">
@@ -150,8 +151,8 @@ export default function ImportarExcel() {
                 <div className="text-xs text-gray-600">Nuevos</div>
               </div>
               <div className="bg-gray-100 border border-gray-200 rounded p-3">
-                <div className="text-2xl font-bold text-gray-700">{resumen.ocultados}</div>
-                <div className="text-xs text-gray-600">Ocultados</div>
+                <div className="text-2xl font-bold text-gray-700">{resumen.desactivados}</div>
+                <div className="text-xs text-gray-600">Desactivados</div>
               </div>
             </div>
 
@@ -173,7 +174,7 @@ export default function ImportarExcel() {
               </div>
             )}
           </div>
-        )}
+        ))}
       </div>
     </div>
   )

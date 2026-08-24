@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const resumen = await sincronizarCatalogo(supabaseAdmin, filas, categoriaOverride)
 
-    return NextResponse.json({ ok: true, resumen, totalFilas: filas.length })
+    return NextResponse.json({ ok: true, ...resumen, totalFilas: filas.length })
   } catch (err: any) {
     console.error('Error importando excel:', err)
     return NextResponse.json({ error: err.message || 'Error inesperado al procesar el archivo.' }, { status: 500 })

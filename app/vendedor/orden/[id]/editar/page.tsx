@@ -94,7 +94,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
     const { data } = await supabase
       .from('products')
       .select('id, nombre, precio_unitario, stock')
-      .gt('stock', 0)
+      .eq('activo', true)
       .or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`)
       .limit(8)
 

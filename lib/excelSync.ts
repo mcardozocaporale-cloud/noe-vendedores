@@ -2,41 +2,50 @@ import * as XLSX from 'xlsx'
 import { SupabaseClient } from '@supabase/supabase-js'
 
 // Mapeo de "Subrubro" del excel -> categoria que usamos en el catálogo online.
-// Si un subrubro nuevo no está acá, se usa tal cual viene del Excel.
+// Si un subrubro nuevo no está acá, se usa tal cual viene del Excel (capitalizado).
 const SUBRUBRO_A_CATEGORIA: Record<string, string> = {
   aceite: 'Aceites',
   harina: 'Harinas',
   fideo: 'Fideos',
   arroz: 'Arroces',
+  arroces: 'Arroces',
   salsa: 'Salsas',
   aderezo: 'Aderezos',
+  aderezos: 'Aderezos',
   lacteo: 'Lácteos',
   galletita: 'Galletitas',
   yerba: 'Yerba e Infusiones',
+  conserva: 'Conservas',
+  conservas: 'Conservas',
+  almacen: 'Almacén',
 }
 
 export interface FilaExcel {
   codigo: string | null
   nombre: string
+  variedad: string
   categoria: string
   subrubro: string
-  existencia_bulto: number
+  existencia: number
   pack: number
-  costo_unitario: number
-  precio_unitario: number
-  precio_bulto: number
-  precio_especial: number
-  activo: boolean
-  permite_ajuste_precio: boolean
+  precio: number // "Precio" -> precio unitario
+  precio_vol: number // "Precio Vol" -> precio por bulto (banda naranja)
+  precio_liq: number // "Precio Liq" -> precio de liquidación (banda lila, solo si especial = SI)
+  activo: boolean // "Activo": manda sobre existencia para decidir si se ve o no
+  especial: boolean // especial = SI
 }
 
-export interface ResumenSync {
+export interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
-  ocultados: number
+  desactivados: number
   nuevosSinImagen: string[]
   errores: string[]
+}
+
+export interface ResumenSync {
+  categorias: ResumenCategoria[]
 }
 
 function normalizeName(s: string): string {
@@ -50,8 +59,9 @@ function normalizeName(s: string): string {
     .replace(/\s+/g, ' ')
 }
 
-function normalizeHeader(s: any): string {
-  return normalizeName(String(s ?? ''))
+function tituloCategoria(s: string): string {
+  if (!s) return s
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
 }
 
 /** Parsea el buffer del .xlsx a filas tipadas, buscando la fila de encabezados (codigo/producto). */
@@ -63,7 +73,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): FilaExcel[] {
   let headerRowIdx = -1
   let headers: string[] = []
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
-    const normRow = (rows[i] || []).map(normalizeHeader)
+    const normRow = (rows[i] || []).map((h: any) => normalizeName(String(h ?? '')))
     if (normRow.includes('codigo') && normRow.includes('producto')) {
       headerRowIdx = i
       headers = normRow
@@ -85,14 +95,14 @@ export function parseExcelBuffer(buffer: ArrayBuffer): FilaExcel[] {
 
   const cCodigo = col('codigo')
   const cProducto = col('producto')
+  const cVariedad = col('variedad')
   const cCategoria = col('categoria')
   const cSubrubro = col('subrubro')
-  const cExistencia = col('exisistencia (bulto)', 'existencia (bulto)', 'existencia')
+  const cExistencia = col('existencia', 'exisistencia (bulto)', 'existencia (bulto)')
   const cPack = col('pack')
-  const cCosto = col('costo unitario')
-  const cPu = col('precio unitario')
-  const cPb = col('precio bulto')
-  const cPe = col('precio especial')
+  const cPrecio = col('precio', 'precio unitario')
+  const cPrecioVol = col('precio vol', 'precio bulto')
+  const cPrecioLiq = col('precio liq', 'precio especial', 'precio liquidacion')
   const cActivo = col('activo')
   const cEspecial = col('especial')
 
@@ -104,29 +114,36 @@ export function parseExcelBuffer(buffer: ArrayBuffer): FilaExcel[] {
     if (!row) continue
     const nombre = cProducto !== -1 ? row[cProducto] : null
     if (!nombre) continue
+    const subrubro = cSubrubro !== -1 ? String(row[cSubrubro] ?? '').trim() : ''
+    if (!subrubro || subrubro === '0') continue // filas basura sin subrubro válido
 
     const especialVal = normalizeName(cEspecial !== -1 ? String(row[cEspecial] ?? '') : '')
+    const activoVal = cActivo !== -1 ? row[cActivo] : 1
 
     filas.push({
-      codigo: cCodigo !== -1 && row[cCodigo] != null ? String(row[cCodigo]) : null,
+      codigo: cCodigo !== -1 && row[cCodigo] != null && row[cCodigo] !== 0 ? String(row[cCodigo]) : null,
       nombre: String(nombre).trim(),
+      variedad: cVariedad !== -1 && row[cVariedad] ? String(row[cVariedad]).trim() : '',
       categoria: cCategoria !== -1 ? String(row[cCategoria] ?? '').trim() : '',
-      subrubro: cSubrubro !== -1 ? String(row[cSubrubro] ?? '').trim() : '',
-      existencia_bulto: num(cExistencia !== -1 ? row[cExistencia] : 0),
+      subrubro,
+      existencia: num(cExistencia !== -1 ? row[cExistencia] : 0),
       pack: num(cPack !== -1 ? row[cPack] : 1) || 1,
-      costo_unitario: num(cCosto !== -1 ? row[cCosto] : 0),
-      precio_unitario: num(cPu !== -1 ? row[cPu] : 0),
-      precio_bulto: num(cPb !== -1 ? row[cPb] : 0),
-      precio_especial: num(cPe !== -1 ? row[cPe] : 0),
-      activo: Boolean(cActivo !== -1 ? row[cActivo] : true),
-      permite_ajuste_precio: especialVal === 'si',
+      precio: num(cPrecio !== -1 ? row[cPrecio] : 0),
+      precio_vol: num(cPrecioVol !== -1 ? row[cPrecioVol] : 0),
+      precio_liq: num(cPrecioLiq !== -1 ? row[cPrecioLiq] : 0),
+      activo: Number(activoVal) === 1 || activoVal === true,
+      especial: especialVal === 'si',
     })
   }
 
   return filas
 }
 
-/** Aplica la sincronización a Supabase, igual que scripts/sync-catalog.js pero server-side. */
+/**
+ * Sincroniza TODAS las categorías/subrubros presentes en el archivo.
+ * "Activo" manda: si Activo=0 el producto se desactiva (no se ve en la web) aunque tenga existencia > 0.
+ * "existencia" queda solo como dato informativo (columna stock), no decide visibilidad.
+ */
 export async function sincronizarCatalogo(
   supabase: SupabaseClient,
   filas: FilaExcel[],
@@ -136,78 +153,102 @@ export async function sincronizarCatalogo(
     throw new Error('El Excel no tiene productos para procesar.')
   }
 
-  const subrubroKey = normalizeName(filas[0].subrubro || '')
-  const categoria = categoriaOverride || SUBRUBRO_A_CATEGORIA[subrubroKey] || filas[0].subrubro || filas[0].categoria
-
-  const { data: existentes, error: fetchErr } = await supabase
-    .from('products')
-    .select('id, nombre, codigo, imagen_base64')
-    .eq('categoria', categoria)
-
-  if (fetchErr) {
-    throw new Error('Error trayendo productos existentes: ' + fetchErr.message)
-  }
-
-  const existentesPorNombre = new Map<string, { id: string; nombre: string }>()
-  for (const p of existentes || []) {
-    existentesPorNombre.set(normalizeName(p.nombre), p)
-  }
-
-  const matcheados = new Set<string>()
-  const resumen: ResumenSync = {
-    categoria,
-    actualizados: 0,
-    insertados: 0,
-    ocultados: 0,
-    nuevosSinImagen: [],
-    errores: [],
-  }
-
+  // Agrupar por subrubro (= página = categoría en nuestro catálogo)
+  const porSubrubro = new Map<string, FilaExcel[]>()
   for (const fila of filas) {
-    const key = normalizeName(fila.nombre)
-    const existente = existentesPorNombre.get(key)
+    const key = normalizeName(fila.subrubro)
+    if (!porSubrubro.has(key)) porSubrubro.set(key, [])
+    porSubrubro.get(key)!.push(fila)
+  }
 
-    const payload = {
-      nombre: fila.nombre,
-      categoria,
-      codigo: fila.codigo,
-      precio_unitario: fila.precio_unitario,
-      precio_bulto: fila.precio_bulto,
-      factor_bulto: fila.pack,
-      stock: Math.floor((fila.existencia_bulto || 0) * (fila.pack || 1)),
-      permite_ajuste_precio: fila.permite_ajuste_precio,
-      precio_min: fila.permite_ajuste_precio ? fila.precio_especial : null,
-      precio_max: fila.permite_ajuste_precio ? fila.precio_bulto : null,
-    }
+  const resultado: ResumenSync = { categorias: [] }
 
-    if (existente) {
-      matcheados.add(existente.id)
-      const { error } = await supabase.from('products').update(payload).eq('id', existente.id)
-      if (error) {
-        resumen.errores.push(`${fila.nombre}: ${error.message}`)
-      } else {
-        resumen.actualizados++
-      }
-    } else {
-      const { error } = await supabase.from('products').insert({
-        ...payload,
-        descripcion: fila.nombre,
-        imagen_base64: null,
+  for (const [subrubroKey, filasCategoria] of porSubrubro) {
+    const categoria =
+      categoriaOverride && porSubrubro.size === 1
+        ? categoriaOverride
+        : SUBRUBRO_A_CATEGORIA[subrubroKey] || tituloCategoria(filasCategoria[0].subrubro)
+
+    const { data: existentes, error: fetchErr } = await supabase
+      .from('products')
+      .select('id, nombre, codigo, imagen_base64')
+      .eq('categoria', categoria)
+
+    if (fetchErr) {
+      resultado.categorias.push({
+        categoria,
+        actualizados: 0,
+        insertados: 0,
+        desactivados: 0,
+        nuevosSinImagen: [],
+        errores: [`Error trayendo productos existentes: ${fetchErr.message}`],
       })
-      if (error) {
-        resumen.errores.push(`${fila.nombre}: ${error.message}`)
+      continue
+    }
+
+    const existentesPorNombre = new Map<string, { id: string; nombre: string }>()
+    for (const p of existentes || []) {
+      existentesPorNombre.set(normalizeName(p.nombre), p)
+    }
+
+    const matcheados = new Set<string>()
+    const resumen: ResumenCategoria = {
+      categoria,
+      actualizados: 0,
+      insertados: 0,
+      desactivados: 0,
+      nuevosSinImagen: [],
+      errores: [],
+    }
+
+    for (const fila of filasCategoria) {
+      const key = normalizeName(fila.nombre)
+      const existente = existentesPorNombre.get(key)
+
+      // Rango de negociación: solo si especial = SI, entre Precio Liq (piso) y Precio Vol (techo).
+      const payload = {
+        nombre: fila.nombre,
+        categoria,
+        codigo: fila.codigo,
+        descripcion: fila.variedad || fila.nombre,
+        precio_unitario: fila.precio,
+        precio_bulto: fila.precio_vol,
+        factor_bulto: fila.pack,
+        stock: Math.floor((fila.existencia || 0) * (fila.pack || 1)), // informativo, no decide visibilidad
+        activo: fila.activo,
+        permite_ajuste_precio: fila.especial,
+        precio_min: fila.especial ? fila.precio_liq : null,
+        precio_max: fila.especial ? fila.precio_vol : null,
+      }
+
+      if (existente) {
+        matcheados.add(existente.id)
+        const { error } = await supabase.from('products').update(payload).eq('id', existente.id)
+        if (error) {
+          resumen.errores.push(`${fila.nombre}: ${error.message}`)
+        } else {
+          resumen.actualizados++
+        }
       } else {
-        resumen.insertados++
-        resumen.nuevosSinImagen.push(fila.nombre)
+        const { error } = await supabase.from('products').insert({ ...payload, imagen_base64: null })
+        if (error) {
+          resumen.errores.push(`${fila.nombre}: ${error.message}`)
+        } else {
+          resumen.insertados++
+          if (fila.activo) resumen.nuevosSinImagen.push(fila.nombre)
+        }
       }
     }
+
+    // Productos que existían en esta categoría pero ya no figuran en el Excel: se desactivan (no se borran).
+    const noEnExcel = (existentes || []).filter(p => !matcheados.has(p.id))
+    for (const p of noEnExcel) {
+      const { error } = await supabase.from('products').update({ activo: false }).eq('id', p.id)
+      if (!error) resumen.desactivados++
+    }
+
+    resultado.categorias.push(resumen)
   }
 
-  const noEnExcel = (existentes || []).filter(p => !matcheados.has(p.id))
-  for (const p of noEnExcel) {
-    const { error } = await supabase.from('products').update({ stock: 0 }).eq('id', p.id)
-    if (!error) resumen.ocultados++
-  }
-
-  return resumen
+  return resultado
 }

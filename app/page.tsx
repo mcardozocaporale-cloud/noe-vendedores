@@ -60,7 +60,7 @@ export default function CatalogPublico() {
 
   async function cargarCategorias() {
     // Consulta liviana (sin imágenes) solo para armar la lista de categorías
-    const { data } = await supabase.from('products').select('categoria').gt('stock', 0)
+    const { data } = await supabase.from('products').select('categoria').eq('activo', true)
     if (data) {
       setCategorias(Array.from(new Set(data.map(p => p.categoria))).sort())
     }
@@ -74,7 +74,7 @@ export default function CatalogPublico() {
     let query = supabase
       .from('products')
       .select('*', { count: 'exact' })
-      .gt('stock', 0)
+      .eq('activo', true)
       .order('categoria')
       .order('nombre')
       .range(desde, hasta)
