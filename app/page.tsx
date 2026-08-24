@@ -387,7 +387,7 @@ function ProductoCard({ producto, onAgregar }: ProductoCardProps) {
         <input
           type="number"
           value={cantidad}
-          onChange={(e) => setCantidad(Math.max(0, parseInt(e.target.value) || 0))}
+          onChange={(e) => setCantidad(Math.min(9999, Math.max(0, parseInt(e.target.value) || 0)))}
           className="flex-1 text-center border border-gray-300 rounded py-1"
         />
         <button className="bg-gray-200 px-3 py-1 rounded" onClick={() => setCantidad(cantidad + 1)}>

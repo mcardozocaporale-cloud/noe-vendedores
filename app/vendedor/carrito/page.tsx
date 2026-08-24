@@ -261,7 +261,7 @@ export default function CarritoVendedor() {
                       <input
                         type="number"
                         value={item.cantidad}
-                        onChange={(e) => actualizarCantidad(idx, parseInt(e.target.value) || 0)}
+                        onChange={(e) => actualizarCantidad(idx, Math.min(9999, parseInt(e.target.value) || 0))}
                         className="w-16 text-center border border-gray-300 rounded py-1"
                       />
                       <span className="text-right w-32 font-bold">
