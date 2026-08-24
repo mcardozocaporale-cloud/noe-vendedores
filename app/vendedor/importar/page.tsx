@@ -9,7 +9,7 @@ interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
-  desactivados: number
+  eliminados: number
   nuevosSinImagen: string[]
   errores: string[]
 }
@@ -151,8 +151,8 @@ export default function ImportarExcel() {
                 <div className="text-xs text-gray-600">Nuevos</div>
               </div>
               <div className="bg-gray-100 border border-gray-200 rounded p-3">
-                <div className="text-2xl font-bold text-gray-700">{resumen.desactivados}</div>
-                <div className="text-xs text-gray-600">Desactivados</div>
+                <div className="text-2xl font-bold text-gray-700">{resumen.eliminados}</div>
+                <div className="text-xs text-gray-600">Eliminados</div>
               </div>
             </div>
 

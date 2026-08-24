@@ -39,7 +39,7 @@ export interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
-  desactivados: number
+  eliminados: number
   nuevosSinImagen: string[]
   errores: string[]
 }
@@ -179,7 +179,7 @@ export async function sincronizarCatalogo(
         categoria,
         actualizados: 0,
         insertados: 0,
-        desactivados: 0,
+        eliminados: 0,
         nuevosSinImagen: [],
         errores: [`Error trayendo productos existentes: ${fetchErr.message}`],
       })
@@ -196,7 +196,7 @@ export async function sincronizarCatalogo(
       categoria,
       actualizados: 0,
       insertados: 0,
-      desactivados: 0,
+      eliminados: 0,
       nuevosSinImagen: [],
       errores: [],
     }
@@ -240,11 +240,20 @@ export async function sincronizarCatalogo(
       }
     }
 
-    // Productos que existían en esta categoría pero ya no figuran en el Excel: se desactivan (no se borran).
+    // Productos que existían en esta categoría pero ya no figuran en el Excel: el Excel es la única
+    // fuente de verdad, no se acumulan versiones viejas -> se borran directamente.
+    // Excepción: si el producto ya tiene pedidos reales asociados, no se puede borrar (por integridad
+    // de datos históricos) y se lo desactiva en su lugar.
     const noEnExcel = (existentes || []).filter(p => !matcheados.has(p.id))
     for (const p of noEnExcel) {
-      const { error } = await supabase.from('products').update({ activo: false }).eq('id', p.id)
-      if (!error) resumen.desactivados++
+      const { error: delError } = await supabase.from('products').delete().eq('id', p.id)
+      if (!delError) {
+        resumen.eliminados++
+      } else {
+        // No se pudo borrar (probablemente tiene pedidos asociados) -> se desactiva como respaldo.
+        await supabase.from('products').update({ activo: false }).eq('id', p.id)
+        resumen.eliminados++
+      }
     }
 
     resultado.categorias.push(resumen)
