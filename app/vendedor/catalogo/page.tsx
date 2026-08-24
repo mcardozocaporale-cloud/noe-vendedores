@@ -339,7 +339,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
           <b>{formatCurrency(producto.precio_unitario)}</b> unitario
         </div>
         <div className={`p-2 rounded ${!negociando && enModoBulto ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
-          <b>{formatCurrency(producto.precio_bulto * producto.factor_bulto)}</b> bulto x{producto.factor_bulto}
+          <b>{formatCurrency(producto.precio_bulto)}</b> c/u comprando por bulto x{producto.factor_bulto}
         </div>
         {cantidad > 0 && !negociando && (
           <p className="text-[11px] text-gray-500">

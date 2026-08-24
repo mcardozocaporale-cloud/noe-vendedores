@@ -79,13 +79,50 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
       if (printWindow) {
         printWindow.document.write('<html><head><title>Remito</title>')
         printWindow.document.write(`<style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
+          * { box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; margin: 20px; color: #111; }
           .remito { max-width: 600px; margin: 0 auto; }
-          h1 { text-align: center; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { border: 1px solid #000; padding: 8px; text-align: left; }
-          th { background: #f0f0f0; }
-          .total { font-weight: bold; font-size: 18px; }
+          h1, h2, h3 { margin: 0; }
+          p { margin: 0; }
+
+          /* Layout */
+          .grid { display: grid; }
+          .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .gap-4 { gap: 16px; }
+          .gap-6 { gap: 24px; }
+          .flex { display: flex; }
+          .justify-between { justify-content: space-between; }
+
+          /* Espaciado */
+          .mb-2 { margin-bottom: 8px; }
+          .mb-6 { margin-bottom: 24px; }
+          .pb-6 { padding-bottom: 24px; }
+          .p-4 { padding: 16px; }
+          .py-2 { padding-top: 8px; padding-bottom: 8px; }
+
+          /* Texto */
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .text-left { text-align: left; }
+          .text-xs { font-size: 11px; }
+          .text-sm { font-size: 13px; }
+          .text-lg { font-size: 18px; }
+          .text-2xl { font-size: 24px; }
+          .font-bold { font-weight: bold; }
+          .font-black { font-weight: 900; }
+          .text-gray-600 { color: #4b5563; }
+          .text-green-600 { color: #16a34a; }
+
+          /* Bordes y fondo */
+          .border-b { border-bottom: 1px solid #d1d5db; }
+          .border-b-2 { border-bottom: 2px solid #111; }
+          .bg-neo-light { background: #FAF4EC; }
+          .rounded { border-radius: 8px; }
+
+          /* Tabla */
+          table { width: 100%; border-collapse: collapse; }
+          .w-full { width: 100%; }
+
           .footer { text-align: center; font-size: 12px; margin-top: 20px; }
         </style></head><body>`)
         printWindow.document.write(remitRef.current.innerHTML)

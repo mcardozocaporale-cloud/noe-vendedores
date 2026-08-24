@@ -104,7 +104,8 @@ export default function CatalogPublico() {
   function agregarAlCarrito(producto: Product, cantidad: number, modo: 'unitario' | 'bulto') {
     if (cantidad <= 0) return
 
-    const precio = modo === 'bulto' ? producto.precio_bulto * producto.factor_bulto : producto.precio_unitario
+    // precio_bulto ya es el precio POR UNIDAD al comprar en modo bulto (no el total del bulto)
+    const precio = modo === 'bulto' ? producto.precio_bulto : producto.precio_unitario
     const existe = carrito.findIndex(item => item.product.id === producto.id && item.modo === modo)
 
     if (existe >= 0) {
@@ -132,7 +133,7 @@ export default function CatalogPublico() {
 
     carrito.forEach((item, idx) => {
       const descripcion = item.modo === 'bulto'
-        ? `${item.cantidad} bulto(s) x${item.product.factor_bulto} de ${item.product.nombre}`
+        ? `${item.cantidad} un. de ${item.product.nombre} (precio por bulto x${item.product.factor_bulto})`
         : `${item.cantidad}x ${item.product.nombre}`
       mensaje += `${idx + 1}. ${descripcion} - ${formatCurrency(item.precio * item.cantidad)}\n`
     })
@@ -368,7 +369,7 @@ function ProductoCard({ producto, onAgregar }: ProductoCardProps) {
           <b>{formatCurrency(producto.precio_unitario)}</b> unitario
         </div>
         <div className={`p-2 rounded ${modo === 'bulto' ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
-          <b>{formatCurrency(producto.precio_bulto * producto.factor_bulto)}</b> bulto x{producto.factor_bulto}
+          <b>{formatCurrency(producto.precio_bulto)}</b> c/u comprando por bulto x{producto.factor_bulto}
         </div>
         {cantidad > 0 && (
           <p className="text-[11px] text-gray-500">
