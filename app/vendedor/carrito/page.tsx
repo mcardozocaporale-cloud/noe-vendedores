@@ -125,20 +125,26 @@ export default function CarritoVendedor() {
 
       for (const item of carrito) {
         const actual = porId.get(item.product.id)
-        if (!actual || !actual.permite_ajuste_precio) continue
+        if (!actual) continue
 
         // Si el precio coincide con el unitario o bulto normal, es venta al precio de lista
-        // (no negoció), no corresponde validar contra el rango especial.
+        // (no negoció), no corresponde validar contra ningún rango.
         const esPrecioDeLista =
           Math.abs(item.precio - actual.precio_unitario) < 0.01 ||
           Math.abs(item.precio - actual.precio_bulto) < 0.01
         if (esPrecioDeLista) continue
 
-        if (actual.precio_min != null && item.precio < actual.precio_min) {
-          itemsInvalidos.push(`${item.product.nombre}: no puede ser menor a ${formatCurrency(actual.precio_min)}`)
+        // Todos los productos permiten negociar: si tiene rango especial cargado se usa ese,
+        // si no, el respaldo es piso = precio por bulto, techo = precio unitario de lista.
+        const tieneRangoEspecial = actual.permite_ajuste_precio && actual.precio_min != null && actual.precio_max != null
+        const rangoMin = tieneRangoEspecial ? actual.precio_min! : actual.precio_bulto
+        const rangoMax = tieneRangoEspecial ? actual.precio_max! : actual.precio_unitario
+
+        if (item.precio < rangoMin) {
+          itemsInvalidos.push(`${item.product.nombre}: no puede ser menor a ${formatCurrency(rangoMin)}`)
         }
-        if (actual.precio_max != null && item.precio > actual.precio_max) {
-          itemsInvalidos.push(`${item.product.nombre}: no puede superar ${formatCurrency(actual.precio_max)}`)
+        if (item.precio > rangoMax) {
+          itemsInvalidos.push(`${item.product.nombre}: no puede superar ${formatCurrency(rangoMax)}`)
         }
       }
 

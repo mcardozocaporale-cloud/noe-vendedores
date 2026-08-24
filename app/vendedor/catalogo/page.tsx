@@ -300,16 +300,24 @@ interface ProductoCardVendedorProps {
 function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps) {
   const [cantidad, setCantidad] = useState(0)
   const [negociando, setNegociando] = useState(false) // negociar precio es OPCIONAL
-  const [precioNegociado, setPrecioNegociado] = useState(producto.precio_min ?? producto.precio_unitario)
 
-  const puedeAjustar = producto.permite_ajuste_precio
+  // Por ahora todos los productos permiten negociar (habilitado para el usuario admin).
+  // Cuando el producto tiene un rango "especial" cargado desde el Excel se usa ese;
+  // si no, el respaldo es: piso = precio por bulto, techo = precio unitario de lista.
+  const tieneRangoEspecial = producto.permite_ajuste_precio && producto.precio_min != null && producto.precio_max != null
+  const rangoMin = tieneRangoEspecial ? producto.precio_min : producto.precio_bulto
+  const rangoMax = tieneRangoEspecial ? producto.precio_max : producto.precio_unitario
+  const puedeAjustar = true
+
+  const [precioNegociado, setPrecioNegociado] = useState(rangoMin)
+
   // Precio automático: pasa a "bulto" solo al alcanzar la cantidad del pack (factor_bulto).
   const enModoBulto = cantidad >= producto.factor_bulto
   const precioAutomatico = enModoBulto ? producto.precio_bulto : producto.precio_unitario
   // El precio final es el negociado SOLO si el vendedor activó la negociación; si no, el automático.
   const precioFinal = negociando ? precioNegociado : precioAutomatico
-  // El precio de liquidación (precio_min) es un piso: no se puede vender por debajo, solo aplica mientras se negocia.
-  const precioInvalido = negociando && (precioNegociado < producto.precio_min || precioNegociado > producto.precio_max)
+  // El piso/techo de negociación no se puede cruzar, solo aplica mientras se está negociando.
+  const precioInvalido = negociando && (precioNegociado < rangoMin || precioNegociado > rangoMax)
 
   return (
     <div className="card flex flex-col h-full">
@@ -358,7 +366,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
               type="button"
               className="text-xs text-neo-orange font-bold"
               onClick={() => {
-                setPrecioNegociado(producto.precio_min)
+                setPrecioNegociado(rangoMin)
                 setNegociando(true)
               }}
             >
@@ -367,21 +375,21 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
           ) : (
             <div>
               <div className="text-xs font-bold text-neo-orange mb-1">
-                Precio especial: {formatCurrency(producto.precio_min)} - {formatCurrency(producto.precio_max)}
+                Rango permitido: {formatCurrency(rangoMin)} - {formatCurrency(rangoMax)}
               </div>
               <input
                 type="number"
                 value={precioNegociado}
                 onChange={(e) => setPrecioNegociado(parseFloat(e.target.value) || 0)}
-                min={producto.precio_min}
-                max={producto.precio_max}
+                min={rangoMin}
+                max={rangoMax}
                 className={`input-field text-sm ${precioInvalido ? 'border-red-500 border-2' : ''}`}
               />
               {precioInvalido && (
                 <p className="text-xs text-red-600 font-bold mt-1">
-                  {precioNegociado < producto.precio_min
-                    ? `No podés vender por debajo del precio de liquidación (${formatCurrency(producto.precio_min)})`
-                    : `El precio no puede superar ${formatCurrency(producto.precio_max)}`}
+                  {precioNegociado < rangoMin
+                    ? `No podés vender por debajo de ${formatCurrency(rangoMin)}`
+                    : `El precio no puede superar ${formatCurrency(rangoMax)}`}
                 </p>
               )}
               <button
