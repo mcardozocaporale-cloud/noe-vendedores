@@ -147,10 +147,15 @@ export default function DashboardVendedor() {
                         </span>
                       </td>
                       <td className="p-2 text-right font-bold">{formatCurrency(orden.total)}</td>
-                      <td className="p-2 text-center">
-                        <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline">
+                      <td className="p-2 text-center whitespace-nowrap">
+                        <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
                           Ver
                         </Link>
+                        {orden.estado === 'pendiente' && (
+                          <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-blue-600 font-bold hover:underline">
+                            Editar
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))}
