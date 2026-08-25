@@ -330,13 +330,17 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
         )}
       </div>
 
-      {producto.imagen_base64 && (
-        <img
-          src={`data:image/png;base64,${producto.imagen_base64}`}
-          alt={producto.nombre}
-          className="w-full aspect-square object-contain mb-3 border border-gray-200 rounded"
-        />
-      )}
+      <div className="w-full aspect-square mb-3 border border-gray-200 rounded bg-gray-50 flex items-center justify-center overflow-hidden">
+        {producto.imagen_base64 ? (
+          <img
+            src={`data:image/png;base64,${producto.imagen_base64}`}
+            alt={producto.nombre}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <span className="text-xs text-gray-400">Sin foto</span>
+        )}
+      </div>
 
       <h4 className="font-bold text-sm mb-1">{producto.nombre}</h4>
       <p className="text-xs text-gray-600 mb-2 flex-1">{producto.descripcion}</p>
