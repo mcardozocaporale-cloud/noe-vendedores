@@ -191,9 +191,18 @@ export async function sincronizarCatalogo(
       continue
     }
 
-    const existentesPorNombre = new Map<string, { id: string; nombre: string }>()
+    // El código es el identificador único real de cada producto (dos filas pueden compartir el
+    // mismo nombre —p.ej. distintos sabores de "Cintitas TOSTEX 125g"— y ser productos distintos).
+    // Por eso se matchea primero por código; el nombre queda solo como respaldo para filas sin
+    // código, y en ese caso se consume una por una (no se pisan entre sí si hay varias con igual
+    // nombre).
+    const existentesPorCodigo = new Map<string, { id: string; nombre: string; codigo: string | null }>()
+    const existentesPorNombre = new Map<string, { id: string; nombre: string; codigo: string | null }[]>()
     for (const p of existentes || []) {
-      existentesPorNombre.set(normalizeName(p.nombre), p)
+      if (p.codigo) existentesPorCodigo.set(p.codigo, p)
+      const key = normalizeName(p.nombre)
+      if (!existentesPorNombre.has(key)) existentesPorNombre.set(key, [])
+      existentesPorNombre.get(key)!.push(p)
     }
 
     const matcheados = new Set<string>()
@@ -207,8 +216,19 @@ export async function sincronizarCatalogo(
     }
 
     for (const fila of filasCategoria) {
-      const key = normalizeName(fila.nombre)
-      const existente = existentesPorNombre.get(key)
+      let existente = fila.codigo ? existentesPorCodigo.get(fila.codigo) : undefined
+      if (!existente) {
+        const candidatos = existentesPorNombre.get(normalizeName(fila.nombre))
+        // Solo se usa el respaldo por nombre si ese candidato todavía no fue tomado por otra fila
+        // con código (evita que una fila con código robe la fila de otra sin código y viceversa).
+        while (candidatos && candidatos.length > 0) {
+          const candidato = candidatos.shift()!
+          if (!matcheados.has(candidato.id)) {
+            existente = candidato
+            break
+          }
+        }
+      }
 
       // Rango de negociación: solo si especial = SI, entre Precio Liq (piso) y Precio Vol (techo).
       const payload = {
