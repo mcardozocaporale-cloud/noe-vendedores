@@ -230,6 +230,19 @@ export async function sincronizarCatalogo(
         }
       }
 
+      // En cuanto una fila existente queda "tomada" se la saca de los dos índices — si no, su
+      // código VIEJO seguiría apuntándola en existentesPorCodigo (el Map se armó una sola vez al
+      // principio y no se actualiza solo) y una fila posterior con ese mismo código viejo la
+      // volvería a matchear por error, pisando el UPDATE recién hecho.
+      if (existente) {
+        if (existente.codigo) existentesPorCodigo.delete(existente.codigo)
+        const restantes = existentesPorNombre.get(normalizeName(existente.nombre))
+        if (restantes) {
+          const idx = restantes.findIndex(c => c.id === existente!.id)
+          if (idx !== -1) restantes.splice(idx, 1)
+        }
+      }
+
       // Rango de negociación: solo si especial = SI, entre Precio Liq (piso) y Precio Vol (techo).
       const payload = {
         nombre: fila.nombre,
