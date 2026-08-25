@@ -35,12 +35,17 @@ export interface FilaExcel {
   especial: boolean // especial = SI
 }
 
+export interface ProductoSinImagen {
+  id: string
+  nombre: string
+}
+
 export interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
   eliminados: number
-  nuevosSinImagen: string[]
+  faltaImagen: ProductoSinImagen[]
   errores: string[]
 }
 
@@ -180,7 +185,7 @@ export async function sincronizarCatalogo(
         actualizados: 0,
         insertados: 0,
         eliminados: 0,
-        nuevosSinImagen: [],
+        faltaImagen: [],
         errores: [`Error trayendo productos existentes: ${fetchErr.message}`],
       })
       continue
@@ -197,7 +202,7 @@ export async function sincronizarCatalogo(
       actualizados: 0,
       insertados: 0,
       eliminados: 0,
-      nuevosSinImagen: [],
+      faltaImagen: [],
       errores: [],
     }
 
@@ -235,7 +240,6 @@ export async function sincronizarCatalogo(
           resumen.errores.push(`${fila.nombre}: ${error.message}`)
         } else {
           resumen.insertados++
-          if (fila.activo) resumen.nuevosSinImagen.push(fila.nombre)
         }
       }
     }
@@ -255,6 +259,16 @@ export async function sincronizarCatalogo(
         resumen.eliminados++
       }
     }
+
+    // Productos activos de esta categoría que todavía no tienen foto (nuevos o de antes) — se listan
+    // acá con su id para poder subirles la imagen directamente desde la pantalla de importación.
+    const { data: faltantes } = await supabase
+      .from('products')
+      .select('id, nombre')
+      .eq('categoria', categoria)
+      .eq('activo', true)
+      .is('imagen_base64', null)
+    resumen.faltaImagen = faltantes || []
 
     resultado.categorias.push(resumen)
   }

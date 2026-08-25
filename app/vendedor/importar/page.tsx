@@ -1,30 +1,74 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth'
+
+interface ProductoSinImagen {
+  id: string
+  nombre: string
+}
 
 interface ResumenCategoria {
   categoria: string
   actualizados: number
   insertados: number
   eliminados: number
-  nuevosSinImagen: string[]
+  faltaImagen: ProductoSinImagen[]
   errores: string[]
 }
 
 const ADMIN_EMAIL = 'admin@neomercado.com'
 
+// Redimensiona/comprime la foto en el navegador antes de mandarla, para no guardar
+// fotos de celular de varios MB como base64 en la base.
+function comprimirImagen(file: File, maxLado = 900, calidad = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo.'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('El archivo no es una imagen válida.'))
+      img.onload = () => {
+        let { width, height } = img
+        if (width > maxLado || height > maxLado) {
+          if (width > height) {
+            height = Math.round((height * maxLado) / width)
+            width = maxLado
+          } else {
+            width = Math.round((width * maxLado) / height)
+            height = maxLado
+          }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('No se pudo procesar la imagen.'))
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, width, height)
+        ctx.drawImage(img, 0, 0, width, height)
+        const dataUrl = canvas.toDataURL('image/jpeg', calidad)
+        resolve(dataUrl.replace(/^data:image\/\w+;base64,/, ''))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function ImportarExcel() {
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [autorizado, setAutorizado] = useState<boolean | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
+  const [inputKey, setInputKey] = useState(0)
   const [categoria, setCategoria] = useState('')
   const [subiendo, setSubiendo] = useState(false)
   const [categorias, setCategorias] = useState<ResumenCategoria[] | null>(null)
   const [error, setError] = useState('')
+  const [subiendoFoto, setSubiendoFoto] = useState<string | null>(null)
+  const [fotosOk, setFotosOk] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const session = getSession()
@@ -45,6 +89,7 @@ export default function ImportarExcel() {
     setSubiendo(true)
     setError('')
     setCategorias(null)
+    setFotosOk(new Set())
 
     try {
       const formData = new FormData()
@@ -63,12 +108,34 @@ export default function ImportarExcel() {
       }
 
       setCategorias(data.categorias)
-      setArchivo(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err: any) {
       setError(err.message || 'Error al subir el archivo.')
     } finally {
       setSubiendo(false)
+      // Se remonta el input de archivo (en vez de solo limpiar el estado) para evitar que el
+      // navegador no dispare el evento de cambio si se vuelve a elegir el mismo archivo.
+      setArchivo(null)
+      setInputKey(k => k + 1)
+    }
+  }
+
+  async function subirFotoProducto(id: string, file: File) {
+    setSubiendoFoto(id)
+    setError('')
+    try {
+      const imagen_base64 = await comprimirImagen(file)
+      const res = await fetch('/api/producto-imagen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, imagen_base64 }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al subir la foto.')
+      setFotosOk(prev => new Set(prev).add(id))
+    } catch (err: any) {
+      setError(err.message || 'Error al subir la foto.')
+    } finally {
+      setSubiendoFoto(null)
     }
   }
 
@@ -112,12 +179,15 @@ export default function ImportarExcel() {
           <div className="mb-4">
             <label className="block text-sm font-bold mb-2">Archivo Excel (.xlsx)</label>
             <input
-              ref={fileInputRef}
+              key={inputKey}
               type="file"
               accept=".xlsx,.xls"
               onChange={e => setArchivo(e.target.files?.[0] || null)}
               className="input-field"
             />
+            {!archivo && (
+              <p className="text-xs text-gray-500 mt-1">Elegí un archivo para poder subirlo.</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -156,11 +226,34 @@ export default function ImportarExcel() {
               </div>
             </div>
 
-            {resumen.nuevosSinImagen.length > 0 && (
+            {resumen.faltaImagen.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mb-3">
-                <p className="font-bold text-sm mb-1">⚠️ Productos nuevos sin foto todavía:</p>
-                <ul className="text-sm list-disc list-inside">
-                  {resumen.nuevosSinImagen.map((n, i) => <li key={i}>{n}</li>)}
+                <p className="font-bold text-sm mb-2">⚠️ Productos sin foto — subila acá directamente:</p>
+                <ul className="text-sm space-y-2">
+                  {resumen.faltaImagen.map(p => (
+                    <li key={p.id} className="flex items-center justify-between gap-2 bg-white rounded border border-yellow-200 px-3 py-2">
+                      <span className="flex-1">{p.nombre}</span>
+                      {fotosOk.has(p.id) ? (
+                        <span className="text-green-700 font-bold text-xs whitespace-nowrap">✅ Subida</span>
+                      ) : subiendoFoto === p.id ? (
+                        <span className="text-gray-500 text-xs whitespace-nowrap">Subiendo...</span>
+                      ) : (
+                        <label className="btn-secondary text-xs cursor-pointer whitespace-nowrap">
+                          📷 Subir foto
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => {
+                              const file = e.target.files?.[0]
+                              if (file) subirFotoProducto(p.id, file)
+                              e.target.value = ''
+                            }}
+                          />
+                        </label>
+                      )}
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
