@@ -15,8 +15,7 @@ interface Product {
   precio_unitario: number
   precio_bulto: number
   factor_bulto: number
-  precio_min: number
-  precio_max: number
+  precio_min: number | null
   stock: number
   imagen_base64: string
   permite_ajuste_precio: boolean
@@ -301,12 +300,11 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
   const [cantidad, setCantidad] = useState(0)
   const [negociando, setNegociando] = useState(false) // negociar precio es OPCIONAL
 
-  // Por ahora todos los productos permiten negociar (habilitado para el usuario admin).
-  // Cuando el producto tiene un rango "especial" cargado desde el Excel se usa ese;
-  // si no, el respaldo es: piso = precio por bulto, techo = precio unitario de lista.
-  const tieneRangoEspecial = producto.permite_ajuste_precio && producto.precio_min != null && producto.precio_max != null
-  const rangoMin = tieneRangoEspecial ? producto.precio_min : producto.precio_bulto
-  const rangoMax = tieneRangoEspecial ? producto.precio_max : producto.precio_unitario
+  // Todos los productos permiten negociar. El piso es el Precio Liq del Excel (precio_min);
+  // si todavía no tiene ese dato cargado, el respaldo es el precio por bulto. El techo siempre
+  // es el precio unitario de lista.
+  const rangoMin = producto.precio_min ?? producto.precio_bulto
+  const rangoMax = producto.precio_unitario
   const puedeAjustar = true
 
   const [precioNegociado, setPrecioNegociado] = useState(rangoMin)

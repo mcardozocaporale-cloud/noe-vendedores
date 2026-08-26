@@ -14,10 +14,8 @@ interface Product {
 interface ProductPriceCheck {
   id: string
   precio_min: number | null
-  precio_max: number | null
   precio_unitario: number
   precio_bulto: number
-  permite_ajuste_precio: boolean
 }
 
 interface CartItem {
@@ -113,7 +111,7 @@ export default function CarritoVendedor() {
       const productIds = carrito.map(item => item.product.id)
       const { data: productosActuales, error: precioError } = await supabase
         .from('products')
-        .select('id, precio_min, precio_max, precio_unitario, precio_bulto, permite_ajuste_precio')
+        .select('id, precio_min, precio_unitario, precio_bulto')
         .in('id', productIds)
 
       if (precioError || !productosActuales) {
@@ -134,11 +132,11 @@ export default function CarritoVendedor() {
           Math.abs(item.precio - actual.precio_bulto) < 0.01
         if (esPrecioDeLista) continue
 
-        // Todos los productos permiten negociar: si tiene rango especial cargado se usa ese,
-        // si no, el respaldo es piso = precio por bulto, techo = precio unitario de lista.
-        const tieneRangoEspecial = actual.permite_ajuste_precio && actual.precio_min != null && actual.precio_max != null
-        const rangoMin = tieneRangoEspecial ? actual.precio_min! : actual.precio_bulto
-        const rangoMax = tieneRangoEspecial ? actual.precio_max! : actual.precio_unitario
+        // Todos los productos permiten negociar. El piso es el Precio Liq del Excel (precio_min);
+        // si todavía no tiene ese dato cargado, el respaldo es el precio por bulto. El techo
+        // siempre es el precio unitario de lista.
+        const rangoMin = actual.precio_min ?? actual.precio_bulto
+        const rangoMax = actual.precio_unitario
 
         if (item.precio < rangoMin) {
           itemsInvalidos.push(`${item.product.nombre}: no puede ser menor a ${formatCurrency(rangoMin)}`)

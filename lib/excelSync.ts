@@ -104,7 +104,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): FilaExcel[] {
   const cCategoria = col('categoria')
   const cSubrubro = col('subrubro')
   const cExistencia = col('existencia', 'exisistencia (bulto)', 'existencia (bulto)')
-  const cPack = col('pack')
+  const cPack = col('pack', 'vol')
   const cPrecio = col('precio', 'precio unitario')
   const cPrecioVol = col('precio vol', 'precio bulto')
   const cPrecioLiq = col('precio liq', 'precio especial', 'precio liquidacion')
@@ -254,9 +254,11 @@ export async function sincronizarCatalogo(
         factor_bulto: fila.pack,
         stock: Math.floor((fila.existencia || 0) * (fila.pack || 1)), // informativo, no decide visibilidad
         activo: fila.activo,
+        // "especial" solo define qué banda se imprime en el folder (naranja=Precio Vol vs
+        // lila=Precio Liq). El piso de negociación en la web es Precio Liq para TODOS los
+        // productos, negocien o no "especial" — por eso precio_min se guarda siempre.
         permite_ajuste_precio: fila.especial,
-        precio_min: fila.especial ? fila.precio_liq : null,
-        precio_max: fila.especial ? fila.precio_vol : null,
+        precio_min: fila.precio_liq > 0 ? fila.precio_liq : null,
       }
 
       if (existente) {
