@@ -89,6 +89,9 @@ export default function DashboardVendedor() {
             <Link href="/vendedor/importar" className="btn-secondary">
               📥 Importar Excel
             </Link>
+            <Link href="/vendedor/productos" className="btn-secondary">
+              ✎ Editar productos
+            </Link>
             <button onClick={handleLogout} className="btn-secondary">
               Cerrar sesión
             </button>
