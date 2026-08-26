@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { parseExcelBuffer, sincronizarCatalogo } from '@/lib/excelSync'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 // Cliente con permisos de administrador — SOLO se usa server-side, nunca se expone al navegador.
 const supabaseAdmin = createClient(

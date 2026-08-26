@@ -166,147 +166,187 @@ export async function sincronizarCatalogo(
     porSubrubro.get(key)!.push(fila)
   }
 
-  const resultado: ResumenSync = { categorias: [] }
+  // Cada categoría se procesa en paralelo y, dentro de cada una, los cambios se mandan en lotes
+  // (upsert/insert/delete con arrays) en vez de una llamada a Supabase por fila — con Excels de
+  // cientos de filas, una llamada por fila en secuencia tarda varios minutos y termina superando
+  // el límite de tiempo de la función serverless (el import se queda colgado en "Procesando...").
+  const categoriasEntries = Array.from(porSubrubro.entries())
 
-  for (const [subrubroKey, filasCategoria] of porSubrubro) {
-    const categoria =
-      categoriaOverride && porSubrubro.size === 1
-        ? categoriaOverride
-        : SUBRUBRO_A_CATEGORIA[subrubroKey] || tituloCategoria(filasCategoria[0].subrubro)
+  const resumenes = await Promise.all(
+    categoriasEntries.map(([subrubroKey, filasCategoria]) =>
+      sincronizarCategoria(supabase, subrubroKey, filasCategoria, categoriaOverride, categoriasEntries.length)
+    )
+  )
 
-    const { data: existentes, error: fetchErr } = await supabase
-      .from('products')
-      .select('id, nombre, codigo, imagen_base64')
-      .eq('categoria', categoria)
-
-    if (fetchErr) {
-      resultado.categorias.push({
-        categoria,
-        actualizados: 0,
-        insertados: 0,
-        eliminados: 0,
-        faltaImagen: [],
-        errores: [`Error trayendo productos existentes: ${fetchErr.message}`],
-      })
-      continue
-    }
-
-    // El código es el identificador único real de cada producto (dos filas pueden compartir el
-    // mismo nombre —p.ej. distintos sabores de "Cintitas TOSTEX 125g"— y ser productos distintos).
-    // Por eso se matchea primero por código; el nombre queda solo como respaldo para filas sin
-    // código, y en ese caso se consume una por una (no se pisan entre sí si hay varias con igual
-    // nombre).
-    const existentesPorCodigo = new Map<string, { id: string; nombre: string; codigo: string | null }>()
-    const existentesPorNombre = new Map<string, { id: string; nombre: string; codigo: string | null }[]>()
-    for (const p of existentes || []) {
-      if (p.codigo) existentesPorCodigo.set(p.codigo, p)
-      const key = normalizeName(p.nombre)
-      if (!existentesPorNombre.has(key)) existentesPorNombre.set(key, [])
-      existentesPorNombre.get(key)!.push(p)
-    }
-
-    const matcheados = new Set<string>()
-    const resumen: ResumenCategoria = {
-      categoria,
-      actualizados: 0,
-      insertados: 0,
-      eliminados: 0,
-      faltaImagen: [],
-      errores: [],
-    }
-
-    for (const fila of filasCategoria) {
-      let existente = fila.codigo ? existentesPorCodigo.get(fila.codigo) : undefined
-      if (!existente) {
-        const candidatos = existentesPorNombre.get(normalizeName(fila.nombre))
-        // Solo se usa el respaldo por nombre si ese candidato todavía no fue tomado por otra fila
-        // con código (evita que una fila con código robe la fila de otra sin código y viceversa).
-        while (candidatos && candidatos.length > 0) {
-          const candidato = candidatos.shift()!
-          if (!matcheados.has(candidato.id)) {
-            existente = candidato
-            break
-          }
-        }
-      }
-
-      // En cuanto una fila existente queda "tomada" se la saca de los dos índices — si no, su
-      // código VIEJO seguiría apuntándola en existentesPorCodigo (el Map se armó una sola vez al
-      // principio y no se actualiza solo) y una fila posterior con ese mismo código viejo la
-      // volvería a matchear por error, pisando el UPDATE recién hecho.
-      if (existente) {
-        if (existente.codigo) existentesPorCodigo.delete(existente.codigo)
-        const restantes = existentesPorNombre.get(normalizeName(existente.nombre))
-        if (restantes) {
-          const idx = restantes.findIndex(c => c.id === existente!.id)
-          if (idx !== -1) restantes.splice(idx, 1)
-        }
-      }
-
-      // Rango de negociación: solo si especial = SI, entre Precio Liq (piso) y Precio Vol (techo).
-      const payload = {
-        nombre: fila.nombre,
-        categoria,
-        codigo: fila.codigo,
-        descripcion: fila.variedad || fila.nombre,
-        precio_unitario: fila.precio,
-        precio_bulto: fila.precio_vol,
-        factor_bulto: fila.pack,
-        stock: Math.floor((fila.existencia || 0) * (fila.pack || 1)), // informativo, no decide visibilidad
-        activo: fila.activo,
-        // "especial" solo define qué banda se imprime en el folder (naranja=Precio Vol vs
-        // lila=Precio Liq). El piso de negociación en la web es Precio Liq para TODOS los
-        // productos, negocien o no "especial" — por eso precio_min se guarda siempre.
-        permite_ajuste_precio: fila.especial,
-        precio_min: fila.precio_liq > 0 ? fila.precio_liq : null,
-      }
-
-      if (existente) {
-        matcheados.add(existente.id)
-        const { error } = await supabase.from('products').update(payload).eq('id', existente.id)
-        if (error) {
-          resumen.errores.push(`${fila.nombre}: ${error.message}`)
-        } else {
-          resumen.actualizados++
-        }
-      } else {
-        const { error } = await supabase.from('products').insert({ ...payload, imagen_base64: null })
-        if (error) {
-          resumen.errores.push(`${fila.nombre}: ${error.message}`)
-        } else {
-          resumen.insertados++
-        }
-      }
-    }
-
-    // Productos que existían en esta categoría pero ya no figuran en el Excel: el Excel es la única
-    // fuente de verdad, no se acumulan versiones viejas -> se borran directamente.
-    // Excepción: si el producto ya tiene pedidos reales asociados, no se puede borrar (por integridad
-    // de datos históricos) y se lo desactiva en su lugar.
-    const noEnExcel = (existentes || []).filter(p => !matcheados.has(p.id))
-    for (const p of noEnExcel) {
-      const { error: delError } = await supabase.from('products').delete().eq('id', p.id)
-      if (!delError) {
-        resumen.eliminados++
-      } else {
-        // No se pudo borrar (probablemente tiene pedidos asociados) -> se desactiva como respaldo.
-        await supabase.from('products').update({ activo: false }).eq('id', p.id)
-        resumen.eliminados++
-      }
-    }
-
-    // Productos activos de esta categoría que todavía no tienen foto (nuevos o de antes) — se listan
-    // acá con su id para poder subirles la imagen directamente desde la pantalla de importación.
-    const { data: faltantes } = await supabase
-      .from('products')
-      .select('id, nombre')
-      .eq('categoria', categoria)
-      .eq('activo', true)
-      .is('imagen_base64', null)
-    resumen.faltaImagen = faltantes || []
-
-    resultado.categorias.push(resumen)
-  }
+  const resultado: ResumenSync = { categorias: resumenes }
 
   return resultado
+}
+
+async function sincronizarCategoria(
+  supabase: SupabaseClient,
+  subrubroKey: string,
+  filasCategoria: FilaExcel[],
+  categoriaOverride: string | undefined,
+  totalCategorias: number
+): Promise<ResumenCategoria> {
+  const categoria =
+    categoriaOverride && totalCategorias === 1
+      ? categoriaOverride
+      : SUBRUBRO_A_CATEGORIA[subrubroKey] || tituloCategoria(filasCategoria[0].subrubro)
+
+  const resumen: ResumenCategoria = {
+    categoria,
+    actualizados: 0,
+    insertados: 0,
+    eliminados: 0,
+    faltaImagen: [],
+    errores: [],
+  }
+
+  const { data: existentes, error: fetchErr } = await supabase
+    .from('products')
+    .select('id, nombre, codigo, imagen_base64')
+    .eq('categoria', categoria)
+
+  if (fetchErr) {
+    resumen.errores.push(`Error trayendo productos existentes: ${fetchErr.message}`)
+    return resumen
+  }
+
+  // El código es el identificador único real de cada producto (dos filas pueden compartir el
+  // mismo nombre —p.ej. distintos sabores de "Cintitas TOSTEX 125g"— y ser productos distintos).
+  // Por eso se matchea primero por código; el nombre queda solo como respaldo para filas sin
+  // código, y en ese caso se consume una por una (no se pisan entre sí si hay varias con igual
+  // nombre).
+  const existentesPorCodigo = new Map<string, { id: string; nombre: string; codigo: string | null }>()
+  const existentesPorNombre = new Map<string, { id: string; nombre: string; codigo: string | null }[]>()
+  for (const p of existentes || []) {
+    if (p.codigo) existentesPorCodigo.set(p.codigo, p)
+    const key = normalizeName(p.nombre)
+    if (!existentesPorNombre.has(key)) existentesPorNombre.set(key, [])
+    existentesPorNombre.get(key)!.push(p)
+  }
+
+  const matcheados = new Set<string>()
+  const filasParaActualizar: Record<string, any>[] = []
+  const filasParaInsertar: Record<string, any>[] = []
+
+  // Fase 1: resolver el match de cada fila contra lo existente — todo en memoria, sin llamadas a
+  // la base, para poder mandar los cambios agrupados en pocos lotes en vez de uno por fila.
+  for (const fila of filasCategoria) {
+    let existente = fila.codigo ? existentesPorCodigo.get(fila.codigo) : undefined
+    if (!existente) {
+      const candidatos = existentesPorNombre.get(normalizeName(fila.nombre))
+      // Solo se usa el respaldo por nombre si ese candidato todavía no fue tomado por otra fila
+      // con código (evita que una fila con código robe la fila de otra sin código y viceversa).
+      while (candidatos && candidatos.length > 0) {
+        const candidato = candidatos.shift()!
+        if (!matcheados.has(candidato.id)) {
+          existente = candidato
+          break
+        }
+      }
+    }
+
+    // En cuanto una fila existente queda "tomada" se la saca de los dos índices — si no, su
+    // código VIEJO seguiría apuntándola en existentesPorCodigo (el Map se armó una sola vez al
+    // principio y no se actualiza solo) y una fila posterior con ese mismo código viejo la
+    // volvería a matchear por error, pisando el UPDATE recién resuelto.
+    if (existente) {
+      matcheados.add(existente.id)
+      if (existente.codigo) existentesPorCodigo.delete(existente.codigo)
+      const restantes = existentesPorNombre.get(normalizeName(existente.nombre))
+      if (restantes) {
+        const idx = restantes.findIndex(c => c.id === existente!.id)
+        if (idx !== -1) restantes.splice(idx, 1)
+      }
+    }
+
+    const payload = {
+      nombre: fila.nombre,
+      categoria,
+      codigo: fila.codigo,
+      descripcion: fila.variedad || fila.nombre,
+      precio_unitario: fila.precio,
+      precio_bulto: fila.precio_vol,
+      factor_bulto: fila.pack,
+      stock: Math.floor((fila.existencia || 0) * (fila.pack || 1)), // informativo, no decide visibilidad
+      activo: fila.activo,
+      // "especial" solo define qué banda se imprime en el folder (naranja=Precio Vol vs
+      // lila=Precio Liq). El piso de negociación en la web es Precio Liq para TODOS los
+      // productos, negocien o no "especial" — por eso precio_min se guarda siempre.
+      permite_ajuste_precio: fila.especial,
+      precio_min: fila.precio_liq > 0 ? fila.precio_liq : null,
+    }
+
+    if (existente) {
+      filasParaActualizar.push({ id: existente.id, ...payload })
+    } else {
+      filasParaInsertar.push({ ...payload, imagen_base64: null })
+    }
+  }
+
+  // Fase 2: mandar los cambios en lotes. Si un lote entero falla (p.ej. un valor inválido en una
+  // sola fila), se reintenta fila por fila solo en ese caso, para no perder el resto del lote ni
+  // el detalle de qué fila específica falló.
+  if (filasParaActualizar.length > 0) {
+    const { error } = await supabase.from('products').upsert(filasParaActualizar)
+    if (!error) {
+      resumen.actualizados += filasParaActualizar.length
+    } else {
+      for (const row of filasParaActualizar) {
+        const { id, ...payload } = row
+        const { error: e2 } = await supabase.from('products').update(payload).eq('id', id)
+        if (e2) resumen.errores.push(`${row.nombre}: ${e2.message}`)
+        else resumen.actualizados++
+      }
+    }
+  }
+
+  if (filasParaInsertar.length > 0) {
+    const { error } = await supabase.from('products').insert(filasParaInsertar)
+    if (!error) {
+      resumen.insertados += filasParaInsertar.length
+    } else {
+      for (const row of filasParaInsertar) {
+        const { error: e2 } = await supabase.from('products').insert(row)
+        if (e2) resumen.errores.push(`${row.nombre}: ${e2.message}`)
+        else resumen.insertados++
+      }
+    }
+  }
+
+  // Productos que existían en esta categoría pero ya no figuran en el Excel: el Excel es la única
+  // fuente de verdad, no se acumulan versiones viejas -> se borran directamente.
+  // Excepción: si el producto ya tiene pedidos reales asociados, no se puede borrar (por integridad
+  // de datos históricos) y se lo desactiva en su lugar.
+  const noEnExcel = (existentes || []).filter(p => !matcheados.has(p.id))
+  if (noEnExcel.length > 0) {
+    const idsBorrar = noEnExcel.map(p => p.id)
+    const { error: delError } = await supabase.from('products').delete().in('id', idsBorrar)
+    if (!delError) {
+      resumen.eliminados += idsBorrar.length
+    } else {
+      // No se pudo borrar el lote entero (probablemente alguno tiene pedidos asociados) ->
+      // se reintenta uno por uno, desactivando como respaldo el que no se pueda borrar.
+      for (const id of idsBorrar) {
+        const { error: e2 } = await supabase.from('products').delete().eq('id', id)
+        if (e2) await supabase.from('products').update({ activo: false }).eq('id', id)
+        resumen.eliminados++
+      }
+    }
+  }
+
+  // Productos activos de esta categoría que todavía no tienen foto (nuevos o de antes) — se listan
+  // acá con su id para poder subirles la imagen directamente desde la pantalla de importación.
+  const { data: faltantes } = await supabase
+    .from('products')
+    .select('id, nombre')
+    .eq('categoria', categoria)
+    .eq('activo', true)
+    .is('imagen_base64', null)
+  resumen.faltaImagen = faltantes || []
+
+  return resumen
 }
