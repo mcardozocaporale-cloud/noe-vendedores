@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
+import { ESTADOS_ORDEN, getEstado } from '@/lib/estados'
 
 interface OrderItem {
   id: string
@@ -23,6 +24,7 @@ interface Order {
   numero_orden: string
   estado: string
   total: number
+  fecha_entrega: string | null
   datos_comprador: any
   created_at: string
   order_items: OrderItem[]
@@ -39,6 +41,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
   const remitRef = useRef<HTMLDivElement>(null)
   const esNuevo = searchParams.get('new') === 'true'
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [cambiandoEstado, setCambiandoEstado] = useState(false)
 
   useEffect(() => {
     // Desempaquetar params (que es una Promise en Next.js 15)
@@ -71,6 +74,24 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
       setOrder(data)
     }
     setLoading(false)
+  }
+
+  async function cambiarEstado(nuevoEstado: string) {
+    if (!order) return
+    setCambiandoEstado(true)
+    const anterior = order.estado
+    setOrder({ ...order, estado: nuevoEstado }) // optimista
+    const { error } = await supabase.from('orders').update({ estado: nuevoEstado }).eq('id', order.id)
+    if (error) {
+      setOrder(prev => (prev ? { ...prev, estado: anterior } : prev))
+    }
+    setCambiandoEstado(false)
+  }
+
+  // "YYYY-MM-DD" se formatea a mano (no con `new Date()`) para no correr un día por huso horario.
+  function formatFecha(fechaISO: string): string {
+    const [anio, mes, dia] = fechaISO.split('-')
+    return `${dia}/${mes}/${anio}`
   }
 
   function imprimirRemito() {
@@ -151,7 +172,8 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     texto += `=${'='.repeat(50)}\n\n`
     texto += `Número: ${order.numero_orden}\n`
     texto += `Fecha: ${new Date(order.created_at).toLocaleDateString()}\n`
-    texto += `Estado: ${order.estado.toUpperCase()}\n\n`
+    if (order.fecha_entrega) texto += `Día de entrega: ${formatFecha(order.fecha_entrega)}\n`
+    texto += `Estado: ${getEstado(order.estado).emoji} ${getEstado(order.estado).label}\n\n`
 
     texto += `COMPRADOR:\n`
     texto += `Nombre: ${order.datos_comprador.nombre}\n`
@@ -195,9 +217,19 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
           <h1 className="text-3xl font-bold">Remito Provisional</h1>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center flex-wrap">
+            <select
+              value={order.estado}
+              onChange={e => cambiarEstado(e.target.value)}
+              disabled={cambiandoEstado}
+              className={`input-field font-bold text-sm w-auto ${getEstado(order.estado).badge}`}
+            >
+              {ESTADOS_ORDEN.map(e => (
+                <option key={e.valor} value={e.valor}>{e.emoji} {e.label}</option>
+              ))}
+            </select>
             <button onClick={imprimirRemito} className="btn-secondary">
               🖨️ Imprimir
             </button>
@@ -220,8 +252,16 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
               <p className="text-lg font-bold">{order.numero_orden}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-600">Fecha</p>
+              <p className="text-xs text-gray-600">Fecha del pedido</p>
               <p className="text-lg font-bold">{new Date(order.created_at).toLocaleDateString('es-AR')}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600">Día de entrega</p>
+              <p className="text-lg font-bold">{order.fecha_entrega ? formatFecha(order.fecha_entrega) : '—'}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-600">Estado</p>
+              <p className="text-lg font-bold">{getEstado(order.estado).emoji} {getEstado(order.estado).label}</p>
             </div>
           </div>
 

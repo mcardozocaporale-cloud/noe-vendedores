@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, clearSession, formatCurrency } from '@/lib/auth'
+import { getEstado } from '@/lib/estados'
 
 interface Vendor {
   id: string
@@ -143,13 +144,8 @@ export default function DashboardVendedor() {
                       <td className="p-2 font-bold">{orden.numero_orden}</td>
                       <td className="p-2">{new Date(orden.created_at).toLocaleDateString()}</td>
                       <td className="p-2">
-                        <span className={`px-3 py-1 rounded text-xs font-bold ${
-                          orden.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                          orden.estado === 'aprobada' ? 'bg-green-100 text-green-800' :
-                          orden.estado === 'entregada' ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {orden.estado}
+                        <span className={`px-3 py-1 rounded text-xs font-bold whitespace-nowrap ${getEstado(orden.estado).badge}`}>
+                          {getEstado(orden.estado).emoji} {getEstado(orden.estado).label}
                         </span>
                       </td>
                       <td className="p-2 text-right font-bold">{formatCurrency(orden.total)}</td>

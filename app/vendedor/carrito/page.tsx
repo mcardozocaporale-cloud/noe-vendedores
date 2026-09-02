@@ -30,6 +30,7 @@ export default function CarritoVendedor() {
   const [vendor, setVendor] = useState<any>(null)
   const [cliente, setCliente] = useState<ClienteActivo | null>(null)
   const [observaciones, setObservaciones] = useState('')
+  const [fechaEntrega, setFechaEntrega] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -98,6 +99,11 @@ export default function CarritoVendedor() {
 
     if (!cliente) {
       setError('No hay un cliente seleccionado para este pedido')
+      return
+    }
+
+    if (!fechaEntrega) {
+      setError('Elegí el día de entrega antes de confirmar el pedido')
       return
     }
 
@@ -175,6 +181,7 @@ export default function CarritoVendedor() {
           numero_orden: numeroOrden,
           estado: 'pendiente',
           total,
+          fecha_entrega: fechaEntrega,
           datos_comprador: datosComprador,
         })
         .select()
@@ -300,6 +307,16 @@ export default function CarritoVendedor() {
                   {cliente.horario_recepcion && <p>🕐 Recibe: {cliente.horario_recepcion}</p>}
                 </div>
               )}
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-1">Día de entrega *</label>
+                <input
+                  type="date"
+                  value={fechaEntrega}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setFechaEntrega(e.target.value)}
+                  className="input-field"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-bold mb-1">Observaciones</label>
                 <textarea
@@ -332,8 +349,8 @@ export default function CarritoVendedor() {
               </div>
               <button
                 onClick={confirmarPedido}
-                disabled={loading}
-                className="btn-primary w-full"
+                disabled={loading || !fechaEntrega}
+                className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {loading ? 'Enviando...' : 'Confirmar Pedido'}
               </button>
