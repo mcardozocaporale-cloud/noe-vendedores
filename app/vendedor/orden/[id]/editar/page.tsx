@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
+import { IconX } from '@/lib/icons'
 
 interface LineItem {
   id: string | null // null = todavía no existe en order_items (recién agregado)
@@ -265,7 +266,9 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
                   <span className="w-24 text-right font-bold text-sm">
                     {formatCurrency(item.precio_unitario * item.cantidad)}
                   </span>
-                  <button onClick={() => quitarItem(idx)} className="text-red-600 font-bold px-1">✕</button>
+                  <button onClick={() => quitarItem(idx)} className="text-red-600 px-1" aria-label="Quitar producto">
+                    <IconX className="w-4 h-4" />
+                  </button>
                 </div>
               )
             })}

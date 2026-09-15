@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, setClienteActivo } from '@/lib/auth'
+import { IconMapPin, IconPlus } from '@/lib/icons'
 
 interface Cliente {
   id: string
@@ -107,11 +108,13 @@ export default function ListaClientes() {
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex justify-between items-start gap-3 mb-1">
           <h1 className="text-2xl font-bold text-neo-dark">Clientes</h1>
-          <Link href="/vendedor/clientes" className="btn-secondary text-sm whitespace-nowrap">+ Nuevo cliente</Link>
+          <Link href="/vendedor/clientes" className="btn-secondary text-sm whitespace-nowrap inline-flex items-center gap-2">
+            <IconPlus className="w-4 h-4" /> Nuevo cliente
+          </Link>
         </div>
         <p className="text-gray-600 mb-6">Todos los clientes cargados. Tocá uno para arrancar un pedido con él.</p>
 
-        <div className="flex gap-2 mb-4 flex-wrap">
+        <div className="card flex gap-2 mb-4 flex-wrap">
           <input
             type="text"
             placeholder="Buscar por nombre, código o dirección..."
@@ -151,10 +154,14 @@ export default function ListaClientes() {
                         {c.nombre}
                         {c.codigo_cliente && <span className="text-gray-400 font-normal"> · #{c.codigo_cliente}</span>}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
-                        {c.direccion && `📍 ${c.direccion}`}
-                        {c.vendedor_codigo && ` · Vend. ${c.vendedor_codigo}`}
-                        {c.forma_pago && ` · ${c.forma_pago}`}
+                      <div className="text-xs text-gray-500 truncate flex items-center gap-1">
+                        {c.direccion && (
+                          <span className="inline-flex items-center gap-1">
+                            <IconMapPin className="w-3 h-3 flex-shrink-0" /> {c.direccion}
+                          </span>
+                        )}
+                        {c.vendedor_codigo && <span>· Vend. {c.vendedor_codigo}</span>}
+                        {c.forma_pago && <span>· {c.forma_pago}</span>}
                       </div>
                     </div>
                   </div>

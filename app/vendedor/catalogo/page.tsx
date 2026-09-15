@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency, getClienteActivo, ClienteActivo } from '@/lib/auth'
+import { IconCart, IconSearch, IconX } from '@/lib/icons'
 
 interface Product {
   id: string
@@ -171,8 +172,8 @@ export default function CatalogoVendedor() {
             </div>
             <div className="flex gap-3 flex-shrink-0">
               <Link href="/vendedor/carrito" className="relative">
-                <button className="btn-secondary relative">
-                  🛒 Carrito
+                <button className="btn-secondary relative inline-flex items-center gap-2">
+                  <IconCart className="w-4 h-4" /> Carrito
                   {carrito.length > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
                       {carrito.length}
@@ -185,7 +186,7 @@ export default function CatalogoVendedor() {
         </div>
         <div className="bg-white border-b border-gray-200 p-3 shadow-sm">
           <div className="max-w-6xl mx-auto flex gap-2 items-center">
-            <span className="text-gray-400">🔍</span>
+            <IconSearch className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
               type="text"
               placeholder="Buscar por código o nombre/marca..."
@@ -195,11 +196,11 @@ export default function CatalogoVendedor() {
             />
             {busquedaInput && (
               <button
-                className="text-gray-500 font-bold px-2"
+                className="text-gray-400 hover:text-gray-600 px-1"
                 onClick={() => setBusquedaInput('')}
                 aria-label="Limpiar búsqueda"
               >
-                ✕
+                <IconX className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -208,26 +209,18 @@ export default function CatalogoVendedor() {
 
       <div className="max-w-6xl mx-auto p-4">
         {/* Filtro Categorías */}
-        <div className="mb-6 flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFiltroCategoria(null)}
-            className={`px-4 py-2 rounded font-bold text-sm ${
-              filtroCategoria === null ? 'bg-neo-orange text-white' : 'bg-neo-light'
-            }`}
+        <div className="mb-6 flex items-center gap-2">
+          <label className="text-sm font-bold text-gray-500">Categoría</label>
+          <select
+            value={filtroCategoria || ''}
+            onChange={e => setFiltroCategoria(e.target.value || null)}
+            className="input-field w-auto"
           >
-            Todas
-          </button>
-          {categorias.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setFiltroCategoria(cat)}
-              className={`px-4 py-2 rounded font-bold text-sm ${
-                filtroCategoria === cat ? 'bg-neo-orange text-white' : 'bg-neo-light'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+            <option value="">Todas</option>
+            {categorias.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
 
         {/* Productos */}
@@ -320,7 +313,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
   return (
     <div className="card flex flex-col h-full">
       <div className="flex justify-between items-start mb-2">
-        <div className="bg-purple-100 text-xs font-bold px-2 py-1 rounded w-fit">
+        <div className="bg-neo-lilac/50 text-neo-lilac-dark text-xs font-bold px-2 py-1 rounded-lg w-fit">
           Bulto x{producto.factor_bulto}
         </div>
         {producto.codigo && (
@@ -372,7 +365,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
                 setNegociando(true)
               }}
             >
-              💬 Negociar precio (opcional)
+              Negociar precio (opcional)
             </button>
           ) : (
             <div>

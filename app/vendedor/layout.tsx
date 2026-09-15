@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { getSession, clearSession } from '@/lib/auth'
+import { IconHome, IconPlus, IconCart, IconUsers, IconUpload, IconEdit, IconLogOut, IconMenu, IconX } from '@/lib/icons'
+import type { ComponentType, SVGProps } from 'react'
 
 const ADMIN_EMAIL = 'admin@neomercado.com'
 
 interface NavItem {
   href: string
   label: string
-  icon: string
+  icon: ComponentType<SVGProps<SVGSVGElement>>
   count?: number
 }
 
@@ -52,25 +54,25 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
   const esAdmin = sesion.email === ADMIN_EMAIL
 
   const grupos: NavGroup[] = [
-    { items: [{ href: '/vendedor/dashboard', label: 'Dashboard', icon: '🏠' }] },
+    { items: [{ href: '/vendedor/dashboard', label: 'Dashboard', icon: IconHome }] },
     {
       label: 'Pedidos',
       items: [
-        { href: '/vendedor/clientes', label: 'Nuevo pedido', icon: '➕' },
-        { href: '/vendedor/carrito', label: 'Mi carrito', icon: '🛒', count: carritoCount || undefined },
+        { href: '/vendedor/clientes', label: 'Nuevo pedido', icon: IconPlus },
+        { href: '/vendedor/carrito', label: 'Mi carrito', icon: IconCart, count: carritoCount || undefined },
       ],
     },
     {
       label: 'Clientes',
-      items: [{ href: '/vendedor/clientes/lista', label: 'Ver todos', icon: '📇' }],
+      items: [{ href: '/vendedor/clientes/lista', label: 'Ver todos', icon: IconUsers }],
     },
     ...(esAdmin
       ? [
           {
             label: 'Admin',
             items: [
-              { href: '/vendedor/importar', label: 'Importar Excel', icon: '📥' },
-              { href: '/vendedor/productos', label: 'Editar productos', icon: '✎' },
+              { href: '/vendedor/importar', label: 'Importar Excel', icon: IconUpload },
+              { href: '/vendedor/productos', label: 'Editar productos', icon: IconEdit },
             ],
           },
         ]
@@ -108,8 +110,8 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
                 href={item.href}
                 className={`nav-link ${esActivo(item.href) ? 'nav-link-active' : ''}`}
               >
-                <span className="flex items-center gap-2 truncate">
-                  <span>{item.icon}</span>
+                <span className="flex items-center gap-2.5 truncate">
+                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
                   <span className="truncate">{item.label}</span>
                 </span>
                 {!!item.count && <span className="nav-count">{item.count}</span>}
@@ -122,8 +124,8 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
       <div className="px-3 py-4 border-t border-gray-100">
         <p className="text-xs text-gray-400 truncate px-3 mb-2">{sesion.email}</p>
         <button onClick={handleLogout} className="nav-link w-full text-red-600 hover:bg-red-50">
-          <span className="flex items-center gap-2">
-            <span>🚪</span> Cerrar sesión
+          <span className="flex items-center gap-2.5">
+            <IconLogOut className="w-[18px] h-[18px]" /> Cerrar sesión
           </span>
         </button>
       </div>
@@ -143,15 +145,22 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
           <div className="w-8 h-8 rounded-lg bg-neo-orange text-white font-black flex items-center justify-center text-sm">N</div>
           <span className="font-black text-neo-dark">NEO MERCADO</span>
         </div>
-        <button onClick={() => setMenuAbierto(true)} className="text-2xl leading-none" aria-label="Abrir menú">
-          ☰
+        <button onClick={() => setMenuAbierto(true)} className="text-neo-dark" aria-label="Abrir menú">
+          <IconMenu className="w-6 h-6" />
         </button>
       </div>
 
       {/* Menú mobile (overlay) */}
       {menuAbierto && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          <div className="w-72 bg-white h-full shadow-xl">{nav}</div>
+          <div className="w-72 bg-white h-full shadow-xl flex flex-col">
+            <div className="flex justify-end px-3 pt-3">
+              <button onClick={() => setMenuAbierto(false)} className="text-gray-400" aria-label="Cerrar menú">
+                <IconX className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 -mt-3">{nav}</div>
+          </div>
           <div className="flex-1 bg-black/40" onClick={() => setMenuAbierto(false)} />
         </div>
       )}

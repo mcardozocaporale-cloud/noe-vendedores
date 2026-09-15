@@ -178,7 +178,7 @@ export default function ClientesVendedor() {
                       <div className="font-bold">{c.apellido}, {c.nombre}</div>
                       {c.empresa && <div className="text-sm text-gray-600">{c.empresa}</div>}
                       <div className="text-xs text-gray-500">
-                        {c.telefono && `📞 ${c.telefono}`}
+                        {c.telefono && `Tel: ${c.telefono}`}
                         {c.localidad && ` · ${c.localidad}`}
                       </div>
                     </div>

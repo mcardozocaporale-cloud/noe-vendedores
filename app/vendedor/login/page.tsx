@@ -48,10 +48,13 @@ export default function LoginVendedor() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-neo-orange to-orange-600 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-neo-orange">NEO MERCADO</h1>
-          <p className="text-gray-600 text-sm mt-2">Panel de Vendedores</p>
+          <div className="w-12 h-12 rounded-xl bg-neo-orange text-white font-black flex items-center justify-center text-xl mx-auto mb-3">
+            N
+          </div>
+          <h1 className="text-2xl font-black text-neo-dark">NEO MERCADO</h1>
+          <p className="text-gray-500 text-sm mt-1">Panel de Vendedores</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -96,12 +99,6 @@ export default function LoginVendedor() {
 
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>¿Eres cliente? <Link href="/" className="text-neo-orange font-bold hover:underline">Ver catálogo público</Link></p>
-        </div>
-
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded text-xs text-gray-600">
-          <p className="font-bold mb-1">Datos de prueba (admin):</p>
-          <p>Email: admin@neomercado.com</p>
-          <p>Password: admin123456</p>
         </div>
       </div>
     </div>

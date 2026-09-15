@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
-import { ESTADOS_ORDEN, getEstado } from '@/lib/estados'
+import { ESTADOS_ORDEN, EstadoBadge } from '@/lib/estados'
+import { IconPlus } from '@/lib/icons'
 
 interface Vendor {
   id: string
@@ -26,7 +27,7 @@ export default function DashboardVendedor() {
   const [vendor, setVendor] = useState<Vendor | null>(null)
   const [ordenes, setOrdenes] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [filtroEstado, setFiltroEstado] = useState<string | null>(null)
+  const [filtroEstado, setFiltroEstado] = useState('')
 
   useEffect(() => {
     const session = getSession()
@@ -77,11 +78,11 @@ export default function DashboardVendedor() {
       <div className="max-w-6xl mx-auto p-4">
         <div className="flex justify-between items-start gap-3 mb-6 flex-wrap">
           <div>
-            <h1 className="text-2xl font-black text-neo-dark">Hola, {vendor?.nombre} 👋</h1>
+            <h1 className="text-2xl font-black text-neo-dark">Hola, {vendor?.nombre}</h1>
             <p className="text-gray-500 text-sm">Así viene tu actividad en Neo Mercado.</p>
           </div>
-          <Link href="/vendedor/clientes" className="btn-primary whitespace-nowrap">
-            ⊕ Nuevo Pedido
+          <Link href="/vendedor/clientes" className="btn-primary whitespace-nowrap inline-flex items-center gap-2">
+            <IconPlus className="w-4 h-4" /> Nuevo Pedido
           </Link>
         </div>
 
@@ -107,68 +108,62 @@ export default function DashboardVendedor() {
 
         {/* Historial Órdenes */}
         <div className="card">
-          <h2 className="text-xl font-bold mb-4 text-neo-dark">Historial de Pedidos</h2>
+          <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
+            <h2 className="text-xl font-bold text-neo-dark">Historial de Pedidos</h2>
+            {ordenes.length > 0 && (
+              <select
+                value={filtroEstado}
+                onChange={e => setFiltroEstado(e.target.value)}
+                className="input-field w-auto text-sm"
+              >
+                <option value="">Todos los estados ({ordenes.length})</option>
+                {ESTADOS_ORDEN.filter(e => conteosPorEstado.has(e.valor)).map(e => (
+                  <option key={e.valor} value={e.valor}>
+                    {e.label} ({conteosPorEstado.get(e.valor)})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
           {ordenes.length === 0 ? (
             <p className="text-gray-600">No tenés pedidos aún. <Link href="/vendedor/clientes" className="text-neo-orange font-bold">Crear tu primer pedido</Link></p>
           ) : (
-            <>
-              <div className="flex gap-2 overflow-x-auto pb-1 mb-5">
-                <button
-                  onClick={() => setFiltroEstado(null)}
-                  className={`pill-filter ${filtroEstado === null ? 'pill-filter-active' : ''}`}
-                >
-                  Todos ({ordenes.length})
-                </button>
-                {ESTADOS_ORDEN.filter(e => conteosPorEstado.has(e.valor)).map(e => (
-                  <button
-                    key={e.valor}
-                    onClick={() => setFiltroEstado(e.valor)}
-                    className={`pill-filter ${filtroEstado === e.valor ? 'pill-filter-active' : ''}`}
-                  >
-                    {e.emoji} {e.label} ({conteosPorEstado.get(e.valor)})
-                  </button>
-                ))}
-              </div>
-
-              <div className="overflow-x-auto -mx-4 px-4">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-gray-400 text-xs uppercase tracking-wide">
-                      <th className="p-2 text-left font-bold">Número</th>
-                      <th className="p-2 text-left font-bold">Fecha</th>
-                      <th className="p-2 text-left font-bold">Estado</th>
-                      <th className="p-2 text-right font-bold">Total</th>
-                      <th className="p-2 font-bold">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ordenesFiltradas.map(orden => (
-                      <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
-                        <td className="p-2 font-bold text-neo-dark">{orden.numero_orden}</td>
-                        <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
-                        <td className="p-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getEstado(orden.estado).badge}`}>
-                            {getEstado(orden.estado).emoji} {getEstado(orden.estado).label}
-                          </span>
-                        </td>
-                        <td className="p-2 text-right font-bold text-neo-dark">{formatCurrency(orden.total)}</td>
-                        <td className="p-2 text-center whitespace-nowrap">
-                          <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
-                            Ver
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-400 text-xs uppercase tracking-wide">
+                    <th className="p-2 text-left font-bold">Número</th>
+                    <th className="p-2 text-left font-bold">Fecha</th>
+                    <th className="p-2 text-left font-bold">Estado</th>
+                    <th className="p-2 text-right font-bold">Total</th>
+                    <th className="p-2 font-bold">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ordenesFiltradas.map(orden => (
+                    <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
+                      <td className="p-2 font-bold text-neo-dark">{orden.numero_orden}</td>
+                      <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
+                      <td className="p-2">
+                        <EstadoBadge valor={orden.estado} />
+                      </td>
+                      <td className="p-2 text-right font-bold text-neo-dark">{formatCurrency(orden.total)}</td>
+                      <td className="p-2 text-center whitespace-nowrap">
+                        <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
+                          Ver
+                        </Link>
+                        {orden.estado === 'pendiente' && (
+                          <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-bold hover:underline">
+                            Editar
                           </Link>
-                          {orden.estado === 'pendiente' && (
-                            <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-bold hover:underline">
-                              Editar
-                            </Link>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
 import { comprimirImagen } from '@/lib/imageUtils'
+import { IconUpload, IconAlertTriangle, IconCamera, IconEdit, IconPlus, IconX } from '@/lib/icons'
 
 interface Producto {
   id: string
@@ -262,13 +263,18 @@ export default function ProductosAdmin() {
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex justify-between items-start gap-3 mb-1">
           <h1 className="text-2xl font-bold text-neo-dark">Editar productos</h1>
-          <Link href="/vendedor/importar" className="btn-secondary text-sm whitespace-nowrap">📥 Importar Excel</Link>
+          <Link href="/vendedor/importar" className="btn-secondary text-sm whitespace-nowrap inline-flex items-center gap-2">
+            <IconUpload className="w-4 h-4" /> Importar Excel
+          </Link>
         </div>
-        <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mb-6 text-sm">
-          ⚠️ Precio, stock, nombre, categoría y activo se <b>pisan solos</b> la próxima vez que subas un
-          Excel (el Excel siempre manda). Usá esto para arreglos puntuales entre una subida y la
-          siguiente, o para productos que no están en el Excel. La <b>foto es la excepción</b>: el
-          importador nunca la toca, así que una vez cargada queda para siempre.
+        <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 mb-6 text-sm flex gap-2">
+          <IconAlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <p>
+            Precio, stock, nombre, categoría y activo se <b>pisan solos</b> la próxima vez que subas un
+            Excel (el Excel siempre manda). Usá esto para arreglos puntuales entre una subida y la
+            siguiente, o para productos que no están en el Excel. La <b>foto es la excepción</b>: el
+            importador nunca la toca, así que una vez cargada queda para siempre.
+          </p>
         </div>
 
         {error && (
@@ -277,7 +283,7 @@ export default function ProductosAdmin() {
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
+        <div className="card flex justify-between items-center mb-4 gap-2 flex-wrap">
           <div className="flex gap-2 flex-1 min-w-[240px]">
             <input
               type="text"
@@ -297,8 +303,12 @@ export default function ProductosAdmin() {
               ))}
             </select>
           </div>
-          <button className="btn-primary whitespace-nowrap" onClick={() => { setCreando(v => !v); setFormNuevo(FORM_VACIO) }}>
-            {creando ? '✕ Cancelar' : '+ Nuevo producto'}
+          <button className="btn-primary whitespace-nowrap inline-flex items-center gap-2" onClick={() => { setCreando(v => !v); setFormNuevo(FORM_VACIO) }}>
+            {creando ? (
+              <><IconX className="w-4 h-4" /> Cancelar</>
+            ) : (
+              <><IconPlus className="w-4 h-4" /> Nuevo producto</>
+            )}
           </button>
         </div>
 
@@ -352,8 +362,8 @@ export default function ProductosAdmin() {
                         {!p.activo && <span className="text-red-600 font-bold"> · INACTIVO</span>}
                       </div>
                     </div>
-                    <label className="btn-secondary text-xs cursor-pointer whitespace-nowrap">
-                      {subiendoFoto ? '...' : '📷 Foto'}
+                    <label className="btn-secondary text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5">
+                      {subiendoFoto ? '...' : <><IconCamera className="w-3.5 h-3.5" /> Foto</>}
                       <input
                         type="file"
                         accept="image/*"
@@ -366,8 +376,8 @@ export default function ProductosAdmin() {
                         }}
                       />
                     </label>
-                    <button className="btn-secondary text-xs whitespace-nowrap" onClick={() => abrirEdicion(p)}>
-                      ✎ Editar
+                    <button className="btn-secondary text-xs whitespace-nowrap inline-flex items-center gap-1.5" onClick={() => abrirEdicion(p)}>
+                      <IconEdit className="w-3.5 h-3.5" /> Editar
                     </button>
                   </div>
                 )}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency, generateOrderNumber, getClienteActivo, clearClienteActivo, ClienteActivo } from '@/lib/auth'
+import { IconX, IconPhone, IconMapPin, IconClock } from '@/lib/icons'
 
 interface Product {
   id: string
@@ -273,9 +274,10 @@ export default function CarritoVendedor() {
                       </span>
                       <button
                         onClick={() => eliminarDelCarrito(idx)}
-                        className="text-red-600 font-bold hover:opacity-70"
+                        className="text-red-600 hover:opacity-70"
+                        aria-label="Quitar producto"
                       >
-                        ✕
+                        <IconX className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -295,9 +297,15 @@ export default function CarritoVendedor() {
                 <div className="space-y-1 text-sm mb-4">
                   <p className="font-bold text-base">{cliente.nombre} {cliente.apellido}</p>
                   {cliente.empresa && <p className="text-gray-600">{cliente.empresa}</p>}
-                  {cliente.telefono && <p>📞 {cliente.telefono}</p>}
-                  {cliente.direccion && <p>📍 {cliente.direccion}{cliente.localidad ? `, ${cliente.localidad}` : ''}</p>}
-                  {cliente.horario_recepcion && <p>🕐 Recibe: {cliente.horario_recepcion}</p>}
+                  {cliente.telefono && (
+                    <p className="flex items-center gap-1.5"><IconPhone className="w-3.5 h-3.5 text-gray-400" /> {cliente.telefono}</p>
+                  )}
+                  {cliente.direccion && (
+                    <p className="flex items-center gap-1.5"><IconMapPin className="w-3.5 h-3.5 text-gray-400" /> {cliente.direccion}{cliente.localidad ? `, ${cliente.localidad}` : ''}</p>
+                  )}
+                  {cliente.horario_recepcion && (
+                    <p className="flex items-center gap-1.5"><IconClock className="w-3.5 h-3.5 text-gray-400" /> Recibe: {cliente.horario_recepcion}</p>
+                  )}
                 </div>
               )}
               <div className="mb-4">

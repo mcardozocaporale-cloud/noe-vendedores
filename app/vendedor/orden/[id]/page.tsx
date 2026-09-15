@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
-import { ESTADOS_ORDEN, getEstado } from '@/lib/estados'
+import { ESTADOS_ORDEN, getEstado, EstadoBadge } from '@/lib/estados'
+import { IconPrinter, IconDownload, IconCheck } from '@/lib/icons'
 
 interface OrderItem {
   id: string
@@ -173,7 +174,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     texto += `Número: ${order.numero_orden}\n`
     texto += `Fecha: ${new Date(order.created_at).toLocaleDateString()}\n`
     if (order.fecha_entrega) texto += `Día de entrega: ${formatFecha(order.fecha_entrega)}\n`
-    texto += `Estado: ${getEstado(order.estado).emoji} ${getEstado(order.estado).label}\n\n`
+    texto += `Estado: ${getEstado(order.estado).label}\n\n`
 
     texto += `COMPRADOR:\n`
     texto += `Nombre: ${order.datos_comprador.nombre}\n`
@@ -205,29 +206,29 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     <div>
       <div className="max-w-4xl mx-auto p-4">
         {esNuevo && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-            ✓ Pedido creado exitosamente. Número de orden: <b>{order.numero_orden}</b>
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+            <IconCheck className="w-4 h-4 flex-shrink-0" /> Pedido creado exitosamente. Número de orden: <b>{order.numero_orden}</b>
           </div>
         )}
 
         <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-          <h1 className="text-3xl font-bold">Remito Provisional</h1>
+          <h1 className="text-3xl font-bold text-neo-dark">Remito Provisional</h1>
           <div className="flex gap-3 items-center flex-wrap">
             <select
               value={order.estado}
               onChange={e => cambiarEstado(e.target.value)}
               disabled={cambiandoEstado}
-              className={`input-field font-bold text-sm w-auto ${getEstado(order.estado).badge}`}
+              className="input-field font-bold text-sm w-auto"
             >
               {ESTADOS_ORDEN.map(e => (
-                <option key={e.valor} value={e.valor}>{e.emoji} {e.label}</option>
+                <option key={e.valor} value={e.valor}>{e.label}</option>
               ))}
             </select>
-            <button onClick={imprimirRemito} className="btn-secondary">
-              🖨️ Imprimir
+            <button onClick={imprimirRemito} className="btn-secondary inline-flex items-center gap-2">
+              <IconPrinter className="w-4 h-4" /> Imprimir
             </button>
-            <button onClick={descargarRemito} className="btn-primary">
-              ⬇️ Descargar
+            <button onClick={descargarRemito} className="btn-primary inline-flex items-center gap-2">
+              <IconDownload className="w-4 h-4" /> Descargar
             </button>
           </div>
         </div>
@@ -253,8 +254,8 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
               <p className="text-lg font-bold">{order.fecha_entrega ? formatFecha(order.fecha_entrega) : '—'}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-600">Estado</p>
-              <p className="text-lg font-bold">{getEstado(order.estado).emoji} {getEstado(order.estado).label}</p>
+              <p className="text-xs text-gray-600 mb-1">Estado</p>
+              <EstadoBadge valor={order.estado} />
             </div>
           </div>
 
