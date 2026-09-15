@@ -188,6 +188,48 @@ export function IconTruck(props: IconProps) {
   )
 }
 
+export function IconTrash(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.5 7h15" />
+      <path d="M9 7V4.8c0-.4.4-.8.9-.8h4.2c.5 0 .9.4.9.8V7" />
+      <path d="M6.5 7 7.3 19a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4L17.5 7" />
+      <path d="M10.2 11v6M13.8 11v6" />
+    </svg>
+  )
+}
+
+export function IconBuilding(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="5" y="3.5" width="10" height="17" rx="1" />
+      <path d="M15 9.5h4v11h-4" />
+      <path d="M8 7.2h.01M11.5 7.2h.01M8 10.5h.01M11.5 10.5h.01M8 13.8h.01M11.5 13.8h.01" strokeWidth="2.4" />
+      <path d="M9.2 20.5v-3.2h1.6v3.2" />
+    </svg>
+  )
+}
+
+export function IconMail(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+      <path d="m4.5 7 7.5 6 7.5-6" />
+    </svg>
+  )
+}
+
+export function IconIdCard(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="5.5" width="18" height="13" rx="1.5" />
+      <circle cx="8.2" cy="10.8" r="1.7" />
+      <path d="M5.7 15.3c.4-1.3 1.4-2 2.5-2s2.1.7 2.5 2" />
+      <path d="M14 9.5h4M14 12.2h4" />
+    </svg>
+  )
+}
+
 export function IconChevronDown(props: IconProps) {
   return (
     <svg {...base} {...props}>

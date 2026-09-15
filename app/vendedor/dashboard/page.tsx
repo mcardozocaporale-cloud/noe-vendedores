@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
 import { ESTADOS_ORDEN, EstadoBadge } from '@/lib/estados'
-import { IconPlus } from '@/lib/icons'
+import { IconPlus, IconTrash } from '@/lib/icons'
 
 interface Vendor {
   id: string
@@ -28,6 +28,7 @@ export default function DashboardVendedor() {
   const [ordenes, setOrdenes] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState('')
+  const [borrando, setBorrando] = useState<string | null>(null)
 
   useEffect(() => {
     const session = getSession()
@@ -58,6 +59,21 @@ export default function DashboardVendedor() {
     if (ordenesData) setOrdenes(ordenesData)
 
     setLoading(false)
+  }
+
+  async function borrarOrden(orden: Order) {
+    const ok = window.confirm(`¿Borrar el pedido ${orden.numero_orden}? Esta acción no se puede deshacer.`)
+    if (!ok) return
+
+    setBorrando(orden.id)
+    const { error } = await supabase.from('orders').delete().eq('id', orden.id)
+    setBorrando(null)
+
+    if (error) {
+      alert('No se pudo borrar el pedido: ' + error.message)
+      return
+    }
+    setOrdenes(prev => prev.filter(o => o.id !== orden.id))
   }
 
   const ordenesFiltradas = useMemo(
@@ -108,62 +124,80 @@ export default function DashboardVendedor() {
 
         {/* Historial Órdenes */}
         <div className="card">
-          <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
-            <h2 className="text-xl font-bold text-neo-dark">Historial de Pedidos</h2>
-            {ordenes.length > 0 && (
-              <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
-                className="input-field w-auto text-sm"
-              >
-                <option value="">Todos los estados ({ordenes.length})</option>
-                {ESTADOS_ORDEN.filter(e => conteosPorEstado.has(e.valor)).map(e => (
-                  <option key={e.valor} value={e.valor}>
-                    {e.label} ({conteosPorEstado.get(e.valor)})
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+          <h2 className="text-xl font-bold text-neo-dark mb-4">Historial de Pedidos</h2>
 
           {ordenes.length === 0 ? (
             <p className="text-gray-600">No tenés pedidos aún. <Link href="/vendedor/clientes" className="text-neo-orange font-bold">Crear tu primer pedido</Link></p>
           ) : (
-            <div className="overflow-x-auto -mx-4 px-4">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-gray-400 text-xs uppercase tracking-wide">
-                    <th className="p-2 text-left font-bold">Número</th>
-                    <th className="p-2 text-left font-bold">Fecha</th>
-                    <th className="p-2 text-left font-bold">Estado</th>
-                    <th className="p-2 text-right font-bold">Total</th>
-                    <th className="p-2 font-bold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ordenesFiltradas.map(orden => (
-                    <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
-                      <td className="p-2 font-bold text-neo-dark">{orden.numero_orden}</td>
-                      <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
-                      <td className="p-2">
-                        <EstadoBadge valor={orden.estado} />
-                      </td>
-                      <td className="p-2 text-right font-bold text-neo-dark">{formatCurrency(orden.total)}</td>
-                      <td className="p-2 text-center whitespace-nowrap">
-                        <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
-                          Ver
-                        </Link>
-                        {orden.estado === 'pendiente' && (
-                          <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-bold hover:underline">
-                            Editar
-                          </Link>
-                        )}
-                      </td>
+            <>
+              {/* Resumen por estado — a la vez es el filtro */}
+              <div className="flex gap-2.5 overflow-x-auto pb-1 mb-5">
+                <button
+                  onClick={() => setFiltroEstado('')}
+                  className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
+                    filtroEstado === '' ? 'bg-neo-dark text-white' : 'bg-neo-light text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Todos <span className="opacity-70">({ordenes.length})</span>
+                </button>
+                {ESTADOS_ORDEN.filter(e => conteosPorEstado.has(e.valor)).map(e => (
+                  <button
+                    key={e.valor}
+                    onClick={() => setFiltroEstado(prev => (prev === e.valor ? '' : e.valor))}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
+                      filtroEstado === e.valor ? e.solid : `${e.badge} hover:opacity-80`
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${filtroEstado === e.valor ? 'bg-white' : e.dot}`} />
+                    {e.label} <span className="opacity-70">({conteosPorEstado.get(e.valor)})</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto -mx-4 px-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-gray-400 text-xs uppercase tracking-wide">
+                      <th className="p-2 text-left font-bold">Número</th>
+                      <th className="p-2 text-left font-bold">Fecha</th>
+                      <th className="p-2 text-left font-bold">Estado</th>
+                      <th className="p-2 text-right font-bold">Total</th>
+                      <th className="p-2 font-bold">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {ordenesFiltradas.map(orden => (
+                      <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
+                        <td className="p-2 font-bold text-neo-dark">{orden.numero_orden}</td>
+                        <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
+                        <td className="p-2">
+                          <EstadoBadge valor={orden.estado} />
+                        </td>
+                        <td className="p-2 text-right font-bold text-neo-dark">{formatCurrency(orden.total)}</td>
+                        <td className="p-2 text-center whitespace-nowrap">
+                          <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
+                            Ver
+                          </Link>
+                          {orden.estado === 'pendiente' && (
+                            <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-bold hover:underline mr-3">
+                              Editar
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => borrarOrden(orden)}
+                            disabled={borrando === orden.id}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-40 align-middle"
+                            aria-label="Borrar pedido"
+                          >
+                            <IconTrash className="w-4 h-4 inline" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>
