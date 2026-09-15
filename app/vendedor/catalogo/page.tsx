@@ -399,20 +399,23 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-1.5 mb-3">
         <button
-          className="bg-gray-200 px-3 py-1 rounded text-sm"
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
           onClick={() => setCantidad(Math.max(0, cantidad - 1))}
         >
-          -
+          −
         </button>
         <input
           type="number"
           value={cantidad}
           onChange={(e) => setCantidad(Math.min(9999, Math.max(0, parseInt(e.target.value) || 0)))}
-          className="flex-1 text-center border border-gray-300 rounded py-1"
+          className="w-0 flex-1 min-w-0 text-center border border-gray-300 rounded-md py-1.5 text-sm"
         />
-        <button className="bg-gray-200 px-3 py-1 rounded text-sm" onClick={() => setCantidad(cantidad + 1)}>
+        <button
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+          onClick={() => setCantidad(cantidad + 1)}
+        >
           +
         </button>
       </div>
