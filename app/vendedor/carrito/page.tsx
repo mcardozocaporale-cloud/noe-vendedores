@@ -227,7 +227,7 @@ export default function CarritoVendedor() {
 
   if (carrito.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <p className="text-2xl font-bold mb-4">Carrito vacío</p>
           <Link href="/vendedor/catalogo" className="btn-primary">
@@ -239,16 +239,9 @@ export default function CarritoVendedor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-neo-orange text-white py-4 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
-        </div>
-      </header>
-
+    <div>
       <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Confirmar Pedido</h1>
+        <h1 className="text-3xl font-bold mb-6 text-neo-dark">Confirmar Pedido</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 whitespace-pre-line">

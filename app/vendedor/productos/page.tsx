@@ -248,7 +248,7 @@ export default function ProductosAdmin() {
 
   if (!autorizado) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <p className="text-xl font-bold mb-4">No tenés permiso para acceder a esta sección.</p>
           <Link href="/vendedor/dashboard" className="btn-primary">← Volver</Link>
@@ -258,16 +258,12 @@ export default function ProductosAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-neo-orange text-white py-4 px-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
-          <Link href="/vendedor/importar" className="btn-secondary text-sm">📥 Importar Excel</Link>
-        </div>
-      </header>
-
+    <div>
       <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-1">Editar productos</h1>
+        <div className="flex justify-between items-start gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-neo-dark">Editar productos</h1>
+          <Link href="/vendedor/importar" className="btn-secondary text-sm whitespace-nowrap">📥 Importar Excel</Link>
+        </div>
         <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mb-6 text-sm">
           ⚠️ Precio, stock, nombre, categoría y activo se <b>pisan solos</b> la próxima vez que subas un
           Excel (el Excel siempre manda). Usá esto para arreglos puntuales entre una subida y la

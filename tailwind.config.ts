@@ -11,6 +11,8 @@ const config: Config = {
         'neo-orange': '#F2843B',
         'neo-dark': '#1E1B18',
         'neo-light': '#F5F4F1',
+        'neo-lilac': '#E4CFF2',
+        'neo-lilac-dark': '#8B5CB8',
       },
     },
   },

@@ -154,22 +154,22 @@ export default function CatalogoVendedor() {
   if (loading && categorias.length === 0) return <div className="text-center py-20">Cargando...</div>
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Header + Buscador (fijos arriba) */}
       <div className="sticky top-0 z-40">
-        <header className="bg-neo-orange text-white py-4 px-4">
-          <div className="max-w-6xl mx-auto flex justify-between items-center">
-            <div>
-              <Link href="/vendedor/dashboard" className="font-bold text-lg block">← NEO MERCADO</Link>
+        <div className="bg-white border-b border-gray-100 py-3 px-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center gap-3">
+            <div className="min-w-0">
+              <h1 className="font-black text-lg text-neo-dark">Catálogo</h1>
               {cliente && (
-                <span className="text-xs opacity-90">
-                  Vendiéndole a: <b>{cliente.nombre} {cliente.apellido}</b>
+                <span className="text-xs text-gray-500">
+                  Vendiéndole a: <b className="text-neo-dark">{cliente.nombre} {cliente.apellido}</b>
                   {' · '}
-                  <Link href="/vendedor/clientes" className="underline">cambiar</Link>
+                  <Link href="/vendedor/clientes" className="text-neo-orange font-bold underline">cambiar</Link>
                 </span>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-shrink-0">
               <Link href="/vendedor/carrito" className="relative">
                 <button className="btn-secondary relative">
                   🛒 Carrito
@@ -182,7 +182,7 @@ export default function CatalogoVendedor() {
               </Link>
             </div>
           </div>
-        </header>
+        </div>
         <div className="bg-white border-b border-gray-200 p-3 shadow-sm">
           <div className="max-w-6xl mx-auto flex gap-2 items-center">
             <span className="text-gray-400">🔍</span>

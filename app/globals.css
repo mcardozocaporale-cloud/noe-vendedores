@@ -27,6 +27,32 @@ html, body {
   }
 
   .card {
-    @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm;
+    @apply bg-white border border-gray-200 rounded-xl p-4 shadow-sm;
+  }
+
+  /* Sidebar (layout de /vendedor) */
+  .nav-section-label {
+    @apply text-[11px] font-bold tracking-wider uppercase text-gray-400 px-3 mt-5 mb-1;
+  }
+
+  .nav-link {
+    @apply flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:bg-neo-light transition-colors;
+  }
+
+  .nav-link-active {
+    @apply bg-neo-lilac/40 text-neo-dark border-l-4 border-neo-lilac-dark -ml-1 pl-2;
+  }
+
+  .nav-count {
+    @apply bg-neo-orange text-white text-[11px] font-bold px-2 py-0.5 rounded-full leading-none;
+  }
+
+  /* Filtros tipo píldora (estado de pedidos, etc.) */
+  .pill-filter {
+    @apply px-4 py-2 rounded-full text-sm font-bold border border-gray-200 text-gray-600 hover:border-neo-orange transition-colors whitespace-nowrap;
+  }
+
+  .pill-filter-active {
+    @apply bg-neo-dark text-white border-neo-dark;
   }
 }

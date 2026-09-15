@@ -188,7 +188,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
 
   if (!puedeEditar) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <p className="text-xl font-bold mb-4">Este pedido ya no se puede editar (no está pendiente).</p>
           <Link href={`/vendedor/orden/${orderId}`} className="btn-primary">Ver pedido</Link>
@@ -198,15 +198,9 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-neo-orange text-white py-4 px-4">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <Link href="/vendedor/dashboard" className="font-bold text-lg">← NEO MERCADO</Link>
-          <span className="text-sm font-bold">Editando {numeroOrden}</span>
-        </div>
-      </header>
-
+    <div>
       <div className="max-w-3xl mx-auto p-4">
+        <p className="text-sm font-bold text-neo-orange mb-1">Editando {numeroOrden}</p>
         <h1 className="text-2xl font-bold mb-4">Editar pedido</h1>
 
         {error && (
