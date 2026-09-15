@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <style>
+      .word { font-family: Arial, Helvetica, sans-serif; font-weight: 800; }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="#F5F4F1"/>
+  <rect x="0" y="0" width="10" height="630" fill="#F2843B"/>
+
+  <text x="600" y="330" text-anchor="middle" class="word" font-size="120" letter-spacing="-2">
+    <tspan fill="#F2843B">N</tspan><tspan fill="#1E1B18">EO MERCADO</tspan>
+  </text>
+
+  <text x="600" y="390" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#6b6b6b" letter-spacing="1">
+    Catálogo mayorista · Pedidos por WhatsApp
+  </text>
+
+  <circle cx="510" cy="440" r="5" fill="#F2843B"/>
+  <circle cx="600" cy="440" r="5" fill="#1E1B18"/>
+  <circle cx="690" cy="440" r="5" fill="#F2843B"/>
+</svg>
