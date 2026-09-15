@@ -87,6 +87,9 @@ export default function DashboardVendedor() {
             <Link href="/vendedor/carrito" className="btn-secondary">
               🛒 Mi Carrito
             </Link>
+            <Link href="/vendedor/clientes/lista" className="btn-secondary">
+              📇 Clientes
+            </Link>
             <Link href="/vendedor/importar" className="btn-secondary">
               📥 Importar Excel
             </Link>
