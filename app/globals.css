@@ -34,15 +34,15 @@ html, body {
 
   /* Sidebar (layout de /vendedor) */
   .nav-section-label {
-    @apply text-[11px] font-bold tracking-wider uppercase text-gray-400 px-3 mt-5 mb-1;
+    @apply text-[11px] font-bold tracking-wider uppercase text-gray-400 px-3 mt-4 mb-1;
   }
 
   .nav-link {
-    @apply flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors;
+    @apply flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors;
   }
 
   .nav-link-active {
-    @apply bg-gray-100 text-neo-dark font-semibold border-l-2 border-neo-orange -ml-1 pl-2;
+    @apply text-neo-orange font-semibold border-l-2 border-neo-orange -ml-1 pl-2;
   }
 
   .nav-count {
