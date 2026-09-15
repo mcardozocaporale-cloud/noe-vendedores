@@ -145,7 +145,7 @@ export default function DashboardVendedor() {
                     key={e.valor}
                     onClick={() => setFiltroEstado(prev => (prev === e.valor ? '' : e.valor))}
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-                      filtroEstado === e.valor ? e.solid : `${e.badge} hover:opacity-80`
+                      filtroEstado === e.valor ? e.solid : 'bg-neo-light text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${filtroEstado === e.valor ? 'bg-white' : e.dot}`} />
@@ -168,7 +168,7 @@ export default function DashboardVendedor() {
                   <tbody>
                     {ordenesFiltradas.map(orden => (
                       <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
-                        <td className="p-2 font-bold text-neo-dark">{orden.numero_orden}</td>
+                        <td className="p-2 font-bold text-neo-dark font-mono text-[13px]">{orden.numero_orden}</td>
                         <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
                         <td className="p-2">
                           <EstadoBadge valor={orden.estado} />

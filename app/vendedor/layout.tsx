@@ -18,6 +18,7 @@ interface NavItem {
 
 interface NavGroup {
   label?: string
+  labelColor?: string
   items: NavItem[]
 }
 
@@ -57,6 +58,7 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
     { items: [{ href: '/vendedor/dashboard', label: 'Dashboard', icon: IconHome }] },
     {
       label: 'Pedidos',
+      labelColor: 'text-neo-orange',
       items: [
         { href: '/vendedor/clientes', label: 'Nuevo pedido', icon: IconPlus },
         { href: '/vendedor/carrito', label: 'Mi carrito', icon: IconCart, count: carritoCount || undefined },
@@ -64,12 +66,14 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
     },
     {
       label: 'Clientes',
+      labelColor: 'text-neo-lilac-dark',
       items: [{ href: '/vendedor/clientes/lista', label: 'Ver todos', icon: IconUsers }],
     },
     ...(esAdmin
       ? [
           {
             label: 'Admin',
+            labelColor: 'text-gray-400',
             items: [
               { href: '/vendedor/importar', label: 'Importar Excel', icon: IconUpload },
               { href: '/vendedor/productos', label: 'Editar productos', icon: IconEdit },
@@ -103,7 +107,7 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
       <nav className="flex-1 overflow-y-auto px-2 py-2">
         {grupos.map((grupo, i) => (
           <div key={i}>
-            {grupo.label && <p className="nav-section-label">{grupo.label}</p>}
+            {grupo.label && <p className={`nav-section-label ${grupo.labelColor || ''}`}>{grupo.label}</p>}
             {grupo.items.map(item => (
               <Link
                 key={item.href}

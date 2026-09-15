@@ -243,7 +243,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
           <div className="grid grid-cols-2 gap-6 mb-6 pb-6 border-b">
             <div>
               <p className="text-xs text-gray-600">Número de Orden</p>
-              <p className="text-lg font-bold">{order.numero_orden}</p>
+              <p className="text-lg font-bold font-mono">{order.numero_orden}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-600">Fecha del pedido</p>

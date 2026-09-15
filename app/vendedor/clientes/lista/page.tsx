@@ -152,7 +152,7 @@ export default function ListaClientes() {
                     <div className="min-w-0">
                       <div className="font-bold truncate">
                         {c.nombre}
-                        {c.codigo_cliente && <span className="text-gray-400 font-normal"> · #{c.codigo_cliente}</span>}
+                        {c.codigo_cliente && <span className="text-gray-400 font-mono font-normal text-xs"> · #{c.codigo_cliente}</span>}
                       </div>
                       <div className="text-xs text-gray-500 truncate flex items-center gap-1">
                         {c.direccion && (
