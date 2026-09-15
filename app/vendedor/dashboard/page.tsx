@@ -92,31 +92,31 @@ export default function DashboardVendedor() {
   return (
     <div>
       <div className="max-w-6xl mx-auto p-4">
-        <div className="flex justify-between items-start gap-3 mb-6 flex-wrap">
+        <div className="flex justify-between items-center gap-3 mb-5">
           <div>
-            <h1 className="text-2xl font-black text-neo-dark">Hola, {vendor?.nombre}</h1>
-            <p className="text-gray-500 text-sm">Así viene tu actividad en Neo Mercado.</p>
+            <h1 className="text-lg font-semibold text-neo-dark">Hola, {vendor?.nombre}</h1>
+            <p className="text-gray-500 text-xs">Así viene tu actividad en Neo Mercado.</p>
           </div>
-          <Link href="/vendedor/clientes" className="btn-primary whitespace-nowrap inline-flex items-center gap-2">
-            <IconPlus className="w-4 h-4" /> Nuevo Pedido
+          <Link href="/vendedor/clientes" className="btn-primary whitespace-nowrap inline-flex items-center gap-1.5">
+            <IconPlus className="w-3.5 h-3.5" /> Nuevo pedido
           </Link>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="card">
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-wide">Total de Pedidos</div>
-            <div className="text-3xl font-black text-neo-dark mt-1">{ordenes.length}</div>
+        {/* KPIs: una sola franja, no tres tarjetas separadas */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 border border-gray-200 rounded-lg mb-5 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+          <div className="px-4 py-2.5 flex items-center justify-between sm:block">
+            <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Total de pedidos</div>
+            <div className="text-lg font-semibold text-neo-dark sm:mt-0.5">{ordenes.length}</div>
           </div>
-          <div className="card">
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-wide">Total Gastado</div>
-            <div className="text-3xl font-black text-neo-dark mt-1">
+          <div className="px-4 py-2.5 flex items-center justify-between sm:block">
+            <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Total gastado</div>
+            <div className="text-lg font-semibold text-neo-dark sm:mt-0.5">
               {formatCurrency(ordenes.reduce((sum, o) => sum + o.total, 0))}
             </div>
           </div>
-          <div className="card border-l-4 border-l-neo-orange">
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-wide">Pedidos Pendientes</div>
-            <div className="text-3xl font-black text-neo-orange mt-1">
+          <div className="px-4 py-2.5 flex items-center justify-between sm:block">
+            <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Pendientes</div>
+            <div className="text-lg font-semibold text-neo-orange sm:mt-0.5">
               {ordenes.filter(o => o.estado === 'pendiente').length}
             </div>
           </div>
@@ -124,18 +124,18 @@ export default function DashboardVendedor() {
 
         {/* Historial Órdenes */}
         <div className="card">
-          <h2 className="text-xl font-bold text-neo-dark mb-4">Historial de Pedidos</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Historial de pedidos</h2>
 
           {ordenes.length === 0 ? (
-            <p className="text-gray-600">No tenés pedidos aún. <Link href="/vendedor/clientes" className="text-neo-orange font-bold">Crear tu primer pedido</Link></p>
+            <p className="text-gray-600 text-sm">No tenés pedidos aún. <Link href="/vendedor/clientes" className="text-neo-orange font-semibold">Crear tu primer pedido</Link></p>
           ) : (
             <>
               {/* Resumen por estado — a la vez es el filtro */}
-              <div className="flex gap-2.5 overflow-x-auto pb-1 mb-5">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4">
                 <button
                   onClick={() => setFiltroEstado('')}
-                  className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-                    filtroEstado === '' ? 'bg-neo-dark text-white' : 'bg-neo-light text-gray-600 hover:bg-gray-200'
+                  className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${
+                    filtroEstado === '' ? 'bg-neo-dark text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   Todos <span className="opacity-70">({ordenes.length})</span>
@@ -144,11 +144,11 @@ export default function DashboardVendedor() {
                   <button
                     key={e.valor}
                     onClick={() => setFiltroEstado(prev => (prev === e.valor ? '' : e.valor))}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-                      filtroEstado === e.valor ? e.solid : 'bg-neo-light text-gray-600 hover:bg-gray-200'
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${
+                      filtroEstado === e.valor ? e.solid : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${filtroEstado === e.valor ? 'bg-white' : e.dot}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${filtroEstado === e.valor ? 'bg-white' : e.dot}`} />
                     {e.label} <span className="opacity-70">({conteosPorEstado.get(e.valor)})</span>
                   </button>
                 ))}
@@ -157,29 +157,29 @@ export default function DashboardVendedor() {
               <div className="overflow-x-auto -mx-4 px-4">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-gray-400 text-xs uppercase tracking-wide">
-                      <th className="p-2 text-left font-bold">Número</th>
-                      <th className="p-2 text-left font-bold">Fecha</th>
-                      <th className="p-2 text-left font-bold">Estado</th>
-                      <th className="p-2 text-right font-bold">Total</th>
-                      <th className="p-2 font-bold">Acciones</th>
+                    <tr className="text-gray-400 text-[11px] uppercase tracking-wide">
+                      <th className="p-2 text-left font-semibold">Número</th>
+                      <th className="p-2 text-left font-semibold">Fecha</th>
+                      <th className="p-2 text-left font-semibold">Estado</th>
+                      <th className="p-2 text-right font-semibold">Total</th>
+                      <th className="p-2 font-semibold">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ordenesFiltradas.map(orden => (
-                      <tr key={orden.id} className="border-t border-gray-100 hover:bg-neo-light/60">
-                        <td className="p-2 font-bold text-neo-dark font-mono text-[13px]">{orden.numero_orden}</td>
+                      <tr key={orden.id} className="border-t border-gray-100 hover:bg-gray-50">
+                        <td className="p-2 font-medium text-neo-dark font-mono text-[13px]">{orden.numero_orden}</td>
                         <td className="p-2 text-gray-500">{new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
                         <td className="p-2">
                           <EstadoBadge valor={orden.estado} />
                         </td>
-                        <td className="p-2 text-right font-bold text-neo-dark">{formatCurrency(orden.total)}</td>
+                        <td className="p-2 text-right font-medium text-neo-dark">{formatCurrency(orden.total)}</td>
                         <td className="p-2 text-center whitespace-nowrap">
-                          <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-bold hover:underline mr-3">
+                          <Link href={`/vendedor/orden/${orden.id}`} className="text-neo-orange font-medium hover:underline mr-3">
                             Ver
                           </Link>
                           {orden.estado === 'pendiente' && (
-                            <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-bold hover:underline mr-3">
+                            <Link href={`/vendedor/orden/${orden.id}/editar`} className="text-neo-lilac-dark font-medium hover:underline mr-3">
                               Editar
                             </Link>
                           )}

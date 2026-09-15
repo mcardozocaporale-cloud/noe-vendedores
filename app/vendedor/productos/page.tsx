@@ -267,7 +267,7 @@ export default function ProductosAdmin() {
             <IconUpload className="w-4 h-4" /> Importar Excel
           </Link>
         </div>
-        <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 mb-6 text-sm flex gap-2">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2.5 mb-5 text-xs flex gap-2">
           <IconAlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
           <p>
             Precio, stock, nombre, categoría y activo se <b>pisan solos</b> la próxima vez que subas un

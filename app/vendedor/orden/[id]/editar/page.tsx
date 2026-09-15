@@ -278,7 +278,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
         <div className="card sticky bottom-4">
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-bold">Total</span>
-            <span className="text-2xl font-black">{formatCurrency(total)}</span>
+            <span className="text-xl font-semibold">{formatCurrency(total)}</span>
           </div>
           <div className="flex gap-3">
             <Link href="/vendedor/dashboard" className="btn-secondary flex-1 text-center">

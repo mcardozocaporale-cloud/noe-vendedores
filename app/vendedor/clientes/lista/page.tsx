@@ -142,11 +142,11 @@ export default function ListaClientes() {
               <button
                 key={c.id}
                 onClick={() => usarCliente(c)}
-                className="card w-full text-left hover:border-neo-orange border-2 border-transparent transition-colors"
+                className="card w-full text-left hover:border-neo-orange transition-colors"
               >
                 <div className="flex justify-between items-center gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-neo-lilac text-neo-lilac-dark font-black flex items-center justify-center flex-shrink-0 text-sm">
+                    <div className="w-9 h-9 rounded-full bg-neo-lilac text-neo-lilac-dark font-semibold flex items-center justify-center flex-shrink-0 text-sm">
                       {c.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">

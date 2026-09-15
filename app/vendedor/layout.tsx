@@ -95,11 +95,11 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
   const nav = (
     <div className="flex flex-col h-full">
       <div className="px-4 py-5 flex items-center gap-3 border-b border-gray-100">
-        <div className="w-9 h-9 rounded-lg bg-neo-orange text-white font-black flex items-center justify-center text-lg flex-shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-neo-orange text-white font-semibold flex items-center justify-center text-sm flex-shrink-0">
           N
         </div>
         <div className="min-w-0">
-          <p className="font-black text-neo-dark leading-tight truncate">NEO MERCADO</p>
+          <p className="font-semibold text-neo-dark leading-tight truncate text-sm">NEO MERCADO</p>
           <p className="text-[11px] text-gray-400 font-bold tracking-wide uppercase">Panel vendedor</p>
         </div>
       </div>
@@ -146,8 +146,8 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
       {/* Header mobile */}
       <div className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-neo-orange text-white font-black flex items-center justify-center text-sm">N</div>
-          <span className="font-black text-neo-dark">NEO MERCADO</span>
+          <div className="w-8 h-8 rounded-lg bg-neo-orange text-white font-semibold flex items-center justify-center text-xs">N</div>
+          <span className="font-semibold text-neo-dark text-sm">NEO MERCADO</span>
         </div>
         <button onClick={() => setMenuAbierto(true)} className="text-neo-dark" aria-label="Abrir menú">
           <IconMenu className="w-6 h-6" />

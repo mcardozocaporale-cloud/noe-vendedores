@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSession, setClienteActivo } from '@/lib/auth'
 import {
-  IconUsers, IconSearch, IconPlus, IconPhone, IconMapPin, IconBuilding,
+  IconSearch, IconPlus, IconPhone, IconMapPin, IconBuilding,
   IconMail, IconIdCard, IconClock,
 } from '@/lib/icons'
 
@@ -158,42 +158,31 @@ export default function ClientesVendedor() {
   return (
     <div>
       <div className="max-w-3xl mx-auto p-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-neo-orange/10 text-neo-orange flex items-center justify-center flex-shrink-0">
-            <IconUsers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-neo-dark leading-tight">Nuevo pedido</h1>
-            <p className="text-gray-500 text-sm">Elegí el cliente para este pedido, o cargá uno nuevo.</p>
-          </div>
+        <div className="mb-5">
+          <h1 className="text-lg font-semibold text-neo-dark leading-tight">Nuevo pedido</h1>
+          <p className="text-gray-500 text-xs">Elegí el cliente para este pedido, o cargá uno nuevo.</p>
         </div>
 
         {!mostrarForm ? (
           <>
-            <div className="card mb-4">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Buscar cliente</label>
-              <div className="relative">
-                <IconSearch className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Nombre, apellido, empresa o documento..."
-                  className="input-field pl-9"
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  autoFocus
-                />
-              </div>
+            <div className="relative mb-4">
+              <IconSearch className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre, apellido, empresa o documento..."
+                className="input-field pl-9"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                autoFocus
+              />
             </div>
 
             {buscando && <p className="text-gray-500 text-sm mb-4">Buscando...</p>}
 
             {!buscando && resultados.length === 0 && (
-              <div className="card mb-4 text-center py-10 border-dashed">
-                <IconUsers className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">
-                  {busqueda ? 'No se encontraron clientes con ese criterio.' : 'No tenés clientes cargados todavía.'}
-                </p>
-              </div>
+              <p className="text-gray-500 text-sm mb-4 py-2">
+                {busqueda ? 'No se encontraron clientes con ese criterio.' : 'No tenés clientes cargados todavía.'}
+              </p>
             )}
 
             {resultados.length > 0 && (
@@ -202,11 +191,11 @@ export default function ClientesVendedor() {
                   <button
                     key={c.id}
                     onClick={() => elegirCliente(c)}
-                    className="card w-full text-left hover:border-neo-orange border-2 border-transparent transition-colors"
+                    className="card w-full text-left hover:border-neo-orange transition-colors"
                   >
                     <div className="flex justify-between items-center gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-neo-lilac text-neo-lilac-dark font-black flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-neo-lilac text-neo-lilac-dark font-semibold text-sm flex items-center justify-center flex-shrink-0">
                           {c.nombre.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -233,9 +222,9 @@ export default function ClientesVendedor() {
 
             <button
               onClick={() => { setMostrarForm(true); setNuevoCliente({ ...clienteVacio, nombre: busqueda }) }}
-              className="btn-secondary w-full inline-flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 bg-transparent hover:bg-neo-light"
+              className="btn-secondary w-full inline-flex items-center justify-center gap-2 border-dashed bg-transparent hover:bg-gray-50"
             >
-              <IconPlus className="w-4 h-4" /> Cliente nuevo
+              <IconPlus className="w-3.5 h-3.5" /> Cliente nuevo
             </button>
           </>
         ) : (
@@ -243,7 +232,7 @@ export default function ClientesVendedor() {
             <h2 className="text-lg font-bold text-neo-dark mb-5">Cliente nuevo</h2>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md mb-4 text-sm">
                 {error}
               </div>
             )}

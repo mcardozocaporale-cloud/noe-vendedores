@@ -345,7 +345,7 @@ export default function CarritoVendedor() {
                   <span className="text-green-600 font-bold">Gratis</span>
                 </div>
               </div>
-              <div className="text-2xl font-black mb-6">
+              <div className="text-2xl font-semibold mb-6">
                 Total: {formatCurrency(total)}
               </div>
               <button

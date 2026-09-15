@@ -161,7 +161,7 @@ export default function CatalogoVendedor() {
         <div className="bg-white border-b border-gray-100 py-3 px-4">
           <div className="max-w-6xl mx-auto flex justify-between items-center gap-3">
             <div className="min-w-0">
-              <h1 className="font-black text-lg text-neo-dark">Catálogo</h1>
+              <h1 className="font-semibold text-lg text-neo-dark">Catálogo</h1>
               {cliente && (
                 <span className="text-xs text-gray-500">
                   Vendiéndole a: <b className="text-neo-dark">{cliente.nombre} {cliente.apellido}</b>
