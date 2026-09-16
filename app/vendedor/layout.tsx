@@ -14,6 +14,7 @@ interface NavItem {
   label: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
   count?: number
+  ayuda?: { objetivo: string; pasos: string[] }
 }
 
 interface NavGroup {
@@ -27,6 +28,7 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
   const [sesion, setSesion] = useState<{ vendorId: string; email: string } | null>(null)
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [carritoCount, setCarritoCount] = useState(0)
+  const [ayudaAbierta, setAyudaAbierta] = useState<NavItem | null>(null)
 
   useEffect(() => {
     setSesion(getSession())
@@ -73,8 +75,32 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
             items: [
               { href: '/vendedor/importar', label: 'Importar Excel', icon: IconUpload },
               { href: '/vendedor/productos', label: 'Editar productos', icon: IconEdit },
-              { href: '/vendedor/ofertas', label: 'Ofertas de proveedores', icon: IconTag },
-              { href: '/vendedor/reposicion', label: 'Qué reponer', icon: IconTruck },
+              {
+                href: '/vendedor/ofertas',
+                label: 'Ofertas de proveedores',
+                icon: IconTag,
+                ayuda: {
+                  objetivo: 'Guardar y comparar automáticamente las ofertas de precios que te mandan los proveedores por WhatsApp, para saber si conviene comprarles.',
+                  pasos: [
+                    'Subí una foto o pegá el texto de la oferta que te llegó.',
+                    'El sistema detecta los productos y precios, y los compara con tu catálogo y con ofertas anteriores.',
+                    'En el historial, "Bajó — conviene" significa mejor precio que la última vez que te ofrecieron ese producto.',
+                  ],
+                },
+              },
+              {
+                href: '/vendedor/reposicion',
+                label: 'Qué reponer',
+                icon: IconTruck,
+                ayuda: {
+                  objetivo: 'Saber qué productos se te están por terminar según lo que ya vendiste, y a qué proveedor/precio los conseguiste la última vez.',
+                  pasos: [
+                    'La lista se arma sola con lo que vendiste en los últimos 30 días y el stock cargado.',
+                    'Lo marcado "Urgente" es lo que se agota primero.',
+                    'Cuando compres algo, usá "Sumar stock" en esa fila para actualizarlo ahí mismo.',
+                  ],
+                },
+              },
             ],
           },
         ]
@@ -103,17 +129,27 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
           <div key={i}>
             {grupo.label && <p className="nav-section-label">{grupo.label}</p>}
             {grupo.items.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-link ${esActivo(item.href) ? 'nav-link-active' : ''}`}
-              >
-                <span className="flex items-center gap-2.5 truncate">
-                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </span>
-                {!!item.count && <span className="nav-count">{item.count}</span>}
-              </Link>
+              <div key={item.href} className="flex items-center gap-1">
+                <Link
+                  href={item.href}
+                  className={`nav-link flex-1 min-w-0 ${esActivo(item.href) ? 'nav-link-active' : ''}`}
+                >
+                  <span className="flex items-center gap-2.5 truncate">
+                    <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {!!item.count && <span className="nav-count">{item.count}</span>}
+                </Link>
+                {item.ayuda && (
+                  <button
+                    onClick={() => setAyudaAbierta(item)}
+                    className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[11px] font-bold hover:border-neo-orange hover:text-neo-orange transition-colors"
+                    aria-label={`Cómo se usa: ${item.label}`}
+                  >
+                    ?
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         ))}
@@ -166,6 +202,36 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
       )}
 
       <main className="flex-1 min-w-0">{children}</main>
+
+      {/* Dosier de ayuda por sección */}
+      {ayudaAbierta && ayudaAbierta.ayuda && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setAyudaAbierta(null)} />
+          <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-5">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h3 className="text-base font-semibold text-neo-dark tracking-tight flex items-center gap-2">
+                <ayudaAbierta.icon className="w-4 h-4 text-neo-orange flex-shrink-0" />
+                {ayudaAbierta.label}
+              </h3>
+              <button onClick={() => setAyudaAbierta(null)} className="text-gray-400 hover:text-gray-600 flex-shrink-0" aria-label="Cerrar">
+                <IconX className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">{ayudaAbierta.ayuda.objetivo}</p>
+            <p className="nav-section-label !mt-0 !px-0">Cómo se usa</p>
+            <ol className="space-y-2">
+              {ayudaAbierta.ayuda.pasos.map((paso, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="w-4 h-4 flex-shrink-0 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold flex items-center justify-center mt-0.5">
+                    {i + 1}
+                  </span>
+                  {paso}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
