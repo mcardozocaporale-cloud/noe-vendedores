@@ -16,3 +16,8 @@ CREATE TABLE IF NOT EXISTS ofertas_proveedores (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ofertas_proveedores_vendor ON ofertas_proveedores(vendor_id);
+
+-- Supabase activa RLS por defecto en tablas nuevas. El resto de la app (products, clientes,
+-- orders) no tiene RLS y se lee con la llave pública desde el navegador, así que esta tabla
+-- sigue la misma convención para que el historial se vea en la pantalla del vendedor.
+ALTER TABLE ofertas_proveedores DISABLE ROW LEVEL SECURITY;
