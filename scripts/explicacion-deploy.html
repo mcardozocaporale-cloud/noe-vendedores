@@ -1,0 +1,159 @@
+<title>Neo Mercado vs Solve</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --card: #ffffff;
+    --border: #E7E1D6;
+    --text: #1E1B18;
+    --text-dim: #746C60;
+    --accent: #F2843B;
+    --ok-bg: #EAF6EF;
+    --ok-text: #1A7F4E;
+    --ok-dot: #2CA968;
+    --warn-bg: #FDF3E3;
+    --warn-text: #92610A;
+    --warn-dot: #D99A2B;
+    --code-bg: #F1ECE1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140F;
+      --card: #211C15;
+      --border: #373024;
+      --text: #F3EFE8;
+      --text-dim: #A99E8E;
+      --accent: #F79A5C;
+      --ok-bg: #12301F;
+      --ok-text: #6BDDA0;
+      --ok-dot: #3FBE80;
+      --warn-bg: #3A2C10;
+      --warn-text: #EFC067;
+      --warn-dot: #D9A23E;
+      --code-bg: #2A241A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17140F;
+    --card: #211C15;
+    --border: #373024;
+    --text: #F3EFE8;
+    --text-dim: #A99E8E;
+    --accent: #F79A5C;
+    --ok-bg: #12301F;
+    --ok-text: #6BDDA0;
+    --ok-dot: #3FBE80;
+    --warn-bg: #3A2C10;
+    --warn-text: #EFC067;
+    --warn-dot: #D9A23E;
+    --code-bg: #2A241A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-block: 48px 80px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding-inline: 20px; }
+
+  h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; margin: 0 0 6px; }
+  .sub { color: var(--text-dim); font-size: 14.5px; margin: 0 0 36px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin: 40px 0 14px; }
+
+  .col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 620px) { .col { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .card h3 { font-size: 15px; font-weight: 700; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot.ok { background: var(--ok-dot); }
+  .dot.warn { background: var(--warn-dot); }
+
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 11px; }
+  .steps li { counter-increment: step; display: flex; gap: 11px; font-size: 14px; line-height: 1.5; }
+  .steps li::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 21px; height: 21px;
+    border-radius: 50%;
+    background: var(--code-bg);
+    color: var(--text-dim);
+    font-size: 11.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .badge { display: inline-flex; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; margin-top: 16px; }
+  .badge.ok { background: var(--ok-bg); color: var(--ok-text); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-text); }
+
+  p.body { font-size: 14.5px; line-height: 1.7; margin: 0 0 12px; max-width: 62ch; }
+
+  code {
+    background: var(--code-bg);
+    color: var(--text);
+    padding: 1.5px 7px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .note {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-top: 16px;
+  }
+  .note p.body { margin: 0; }
+  .note b { color: var(--text); }
+</style>
+
+<div class="wrap">
+  <h1>Cómo se publican los cambios</h1>
+  <p class="sub">Neo Mercado vs. Solve — para explicarlo en dos minutos.</p>
+
+  <div class="col">
+    <div class="card">
+      <h3><span class="dot ok"></span>Acá, en Neo Mercado</h3>
+      <ol class="steps">
+        <li>Edito el código del proyecto.</li>
+        <li>Lo pruebo en local antes de tocar lo real.</li>
+        <li>Guardo el cambio en Git con <code>git push</code>.</li>
+        <li>Vercel lo detecta solo y lo publica en 1-2 minutos.</li>
+      </ol>
+      <span class="badge ok">Vos no hacés nada más</span>
+    </div>
+
+    <div class="card">
+      <h3><span class="dot warn"></span>En Solve</h3>
+      <ol class="steps">
+        <li>Se edita el código del proyecto.</li>
+        <li>Alguien tiene que acordarse de deployar a mano.</li>
+        <li>Si ese paso no se hace, el cambio queda listo pero no se ve online.</li>
+      </ol>
+      <span class="badge warn">Paso manual, cada vez</span>
+    </div>
+  </div>
+
+  <h2>Por qué la diferencia</h2>
+  <p class="body">
+    Acá el repositorio está conectado directo a Vercel por Git: cada <code>git push</code>
+    dispara sola la publicación. Es una conexión que se arma <b>una sola vez</b> y después
+    queda funcionando así para siempre.
+  </p>
+  <p class="body">
+    En Solve, si hay que deployar a mano todo el tiempo, es casi seguro que esa conexión
+    automática todavía no está armada — el proyecto puede estar en otro tipo de hosting, o el
+    repositorio no está enganchado a Vercel.
+  </p>
+
+  <div class="note">
+    <p class="body">
+      <b>No es algo que tenga que repetirse siempre.</b> Es una configuración puntual: conectar
+      el repositorio del proyecto a Vercel (Import Project → elegir el repo de GitHub). Una vez
+      hecho, Solve quedaría publicando solo, igual que acá.
+    </p>
+  </div>
+</div>

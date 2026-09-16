@@ -14,22 +14,33 @@ html, body {
 }
 
 @layer components {
-  /* Botones: sobrios, con radio chico y sin sombra — el acento (naranja) se reserva para la
-     ÚNICA acción principal de cada pantalla, no para todo lo que sea clickeable. */
+  /* Sistema de radios tomado de la referencia "Increase" (institucional/fintech): jerarquía
+     disciplinada, no un solo radio repetido en todo — 8px controles, 12px tarjetas, full solo
+     para píldoras de estado. El acento (naranja) se reserva para la ÚNICA acción principal de
+     cada pantalla, no para todo lo que sea clickeable. */
   .btn-primary {
-    @apply bg-neo-orange text-white font-semibold text-sm py-2 px-3.5 rounded-md hover:bg-[#e0762e] transition-colors;
+    @apply bg-neo-orange text-white font-semibold text-sm py-2 px-3.5 rounded-lg hover:bg-[#e0762e] transition-colors;
   }
 
   .btn-secondary {
-    @apply bg-white text-neo-dark font-semibold text-sm py-2 px-3.5 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors;
+    @apply bg-white text-neo-dark font-semibold text-sm py-2 px-3.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors;
   }
 
   .input-field {
-    @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-neo-dark focus:border-neo-dark;
+    @apply w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-neo-dark focus:border-neo-dark;
   }
 
+  /* Tarjetas: borde hairline + sombra tenue de dos capas en vez de borde duro solo — así flotan
+     apenas sobre el fondo, como "papel" (técnica de Increase, con el tinte cálido de Neo en vez
+     de su navy). */
   .card {
-    @apply bg-white border border-gray-200 rounded-lg p-4;
+    @apply bg-white border border-gray-200/80 rounded-xl p-4 shadow-[0_1px_2px_rgba(30,27,24,0.04),0_6px_16px_rgba(30,27,24,0.045)];
+  }
+
+  /* Números y títulos: tracking negativo a tamaños grandes — la firma tipográfica de la
+     referencia elegida, da esa sensación "documento financiero preciso" en vez de app genérica. */
+  .figure-display {
+    @apply tracking-tight;
   }
 
   /* Sidebar (layout de /vendedor) */
@@ -38,7 +49,7 @@ html, body {
   }
 
   .nav-link {
-    @apply flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors;
+    @apply flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors;
   }
 
   .nav-link-active {
@@ -51,7 +62,7 @@ html, body {
 
   /* Filtros tipo píldora (estado de pedidos, etc.) */
   .pill-filter {
-    @apply px-3 py-1.5 rounded-md text-sm font-medium border border-gray-200 text-gray-600 hover:border-gray-300 transition-colors whitespace-nowrap;
+    @apply px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:border-gray-300 transition-colors whitespace-nowrap;
   }
 
   .pill-filter-active {

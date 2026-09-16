@@ -50,10 +50,10 @@ export default function LoginVendedor() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg border border-gray-200 p-8 w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-8 h-8 rounded-md bg-neo-orange text-white font-semibold flex items-center justify-center text-sm mx-auto mb-3">
+          <div className="w-8 h-8 rounded-lg bg-neo-orange text-white font-semibold flex items-center justify-center text-sm mx-auto mb-3">
             N
           </div>
-          <h1 className="text-base font-semibold text-neo-dark">NEO MERCADO</h1>
+          <h1 className="text-base font-semibold text-neo-dark tracking-tight">NEO MERCADO</h1>
           <p className="text-gray-500 text-xs mt-1">Panel de vendedores</p>
         </div>
 

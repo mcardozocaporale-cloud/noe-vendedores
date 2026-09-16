@@ -109,7 +109,7 @@ export default function DashboardVendedor() {
       <div className="max-w-6xl mx-auto p-4">
         <div className="flex justify-between items-center gap-3 mb-5">
           <div>
-            <h1 className="text-base font-semibold text-neo-dark">Dashboard</h1>
+            <h1 className="text-base font-semibold text-neo-dark tracking-tight">Dashboard</h1>
             <p className="text-gray-500 text-xs">Resumen de actividad y pedidos.</p>
           </div>
           <Link href="/vendedor/clientes" className="btn-primary whitespace-nowrap inline-flex items-center gap-1.5">
@@ -121,15 +121,15 @@ export default function DashboardVendedor() {
         <div className="grid grid-cols-1 sm:grid-cols-3 border border-gray-200 rounded-lg mb-5 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
           <div className="px-4 py-3 flex items-center justify-between sm:block">
             <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Pedidos</div>
-            <div className="text-2xl font-bold text-neo-dark sm:mt-0.5">{ordenesValidas.length}</div>
+            <div className="text-2xl font-bold text-neo-dark sm:mt-0.5 tracking-tight">{ordenesValidas.length}</div>
           </div>
           <div className="px-4 py-3 flex items-center justify-between sm:block">
             <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Total vendido</div>
-            <div className="text-2xl font-bold text-neo-dark sm:mt-0.5">{formatCurrency(totalVendido)}</div>
+            <div className="text-2xl font-bold text-neo-dark sm:mt-0.5 tracking-tight">{formatCurrency(totalVendido)}</div>
           </div>
           <div className="px-4 py-3 flex items-center justify-between sm:block">
             <div className="text-gray-500 text-[11px] font-medium uppercase tracking-wide">Pendientes</div>
-            <div className="text-2xl font-bold text-neo-orange sm:mt-0.5">{pendientes}</div>
+            <div className="text-2xl font-bold text-neo-orange sm:mt-0.5 tracking-tight">{pendientes}</div>
           </div>
         </div>
 

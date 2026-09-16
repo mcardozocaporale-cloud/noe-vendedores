@@ -262,7 +262,7 @@ export default function ProductosAdmin() {
     <div>
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex justify-between items-start gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-neo-dark">Editar productos</h1>
+          <h1 className="text-2xl font-bold text-neo-dark tracking-tight">Editar productos</h1>
           <Link href="/vendedor/importar" className="btn-secondary text-sm whitespace-nowrap inline-flex items-center gap-2">
             <IconUpload className="w-4 h-4" /> Importar Excel
           </Link>
