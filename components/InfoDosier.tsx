@@ -58,10 +58,11 @@ export function DosierBotonAyuda({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[11px] font-bold hover:border-neo-orange hover:text-neo-orange transition-colors"
+      className="flex-shrink-0 inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-orange-50 border border-neo-orange/30 text-neo-orange text-xs font-bold hover:bg-neo-orange hover:text-white transition-colors"
       aria-label="Para qué sirve esto"
     >
-      ?
+      <span className="w-4 h-4 flex-shrink-0 rounded-full bg-neo-orange text-white flex items-center justify-center text-[10px]">?</span>
+      Para qué sirve
     </button>
   )
 }
