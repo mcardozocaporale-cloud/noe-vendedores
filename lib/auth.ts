@@ -83,3 +83,15 @@ export function formatCurrency(value: number): string {
 export function generateOrderNumber(): string {
   return 'ORD-' + Date.now().toString().slice(-8)
 }
+
+// Muchos productos comparten el mismo "nombre" y solo se distinguen por la variedad del Excel
+// (queda guardada en "descripcion" — p.ej. 12 "Fideos SOL PAMPEANO 500g" distintos, uno por
+// forma: coditos, spaghetti, moños...). Si no se muestra esa variedad, quedan indistinguibles
+// en el carrito, el remito y la edición de pedidos. Cuando el producto NO tiene variedad real,
+// el sync deja descripcion == nombre (fallback), así que ahí no hay que repetir nada.
+export function nombreConVariedad(nombre: string, descripcion?: string | null): string {
+  if (!descripcion) return nombre
+  const d = descripcion.trim()
+  if (!d || d.toLowerCase() === nombre.trim().toLowerCase()) return nombre
+  return `${nombre} — ${d}`
+}

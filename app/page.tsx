@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/auth'
+import { formatCurrency, nombreConVariedad } from '@/lib/auth'
 
 interface Product {
   id: string
@@ -132,9 +132,10 @@ export default function CatalogPublico() {
     mensaje += `\n`
 
     carrito.forEach((item, idx) => {
+      const nombreProducto = nombreConVariedad(item.product.nombre, item.product.descripcion)
       const descripcion = item.modo === 'bulto'
-        ? `${item.cantidad} un. de ${item.product.nombre} (precio por bulto x${item.product.factor_bulto})`
-        : `${item.cantidad}x ${item.product.nombre}`
+        ? `${item.cantidad} un. de ${nombreProducto} (precio por bulto x${item.product.factor_bulto})`
+        : `${item.cantidad}x ${nombreProducto}`
       mensaje += `${idx + 1}. ${descripcion} - ${formatCurrency(item.precio * item.cantidad)}\n`
     })
 

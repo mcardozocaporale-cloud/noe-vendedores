@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSession, formatCurrency, generateOrderNumber, getClienteActivo, clearClienteActivo, ClienteActivo } from '@/lib/auth'
+import { getSession, formatCurrency, generateOrderNumber, getClienteActivo, clearClienteActivo, ClienteActivo, nombreConVariedad } from '@/lib/auth'
 import { IconX, IconPhone, IconMapPin, IconClock } from '@/lib/icons'
 
 interface Product {
   id: string
   nombre: string
+  descripcion?: string
 }
 
 interface ProductPriceCheck {
@@ -259,7 +260,7 @@ export default function CarritoVendedor() {
                 {carrito.map((item, idx) => (
                   <div key={idx} className="flex gap-4 border-b pb-4">
                     <div className="flex-1">
-                      <h4 className="font-bold">{item.product.nombre}</h4>
+                      <h4 className="font-bold">{nombreConVariedad(item.product.nombre, item.product.descripcion)}</h4>
                       <p className="text-sm text-gray-600">{formatCurrency(item.precio)} c/u</p>
                     </div>
                     <div className="flex items-center gap-2">

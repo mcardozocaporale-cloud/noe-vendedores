@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSession, formatCurrency } from '@/lib/auth'
+import { getSession, formatCurrency, nombreConVariedad } from '@/lib/auth'
 import { ESTADOS_ORDEN, getEstado, EstadoBadge } from '@/lib/estados'
 import { IconPrinter, IconDownload, IconCheck } from '@/lib/icons'
 
@@ -16,6 +16,7 @@ interface OrderItem {
   subtotal: number
   products?: {
     nombre: string
+    descripcion?: string
     codigo?: string
   }
 }
@@ -65,7 +66,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     if (!orderId) return
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items(*, products(nombre))')
+      .select('*, order_items(*, products(nombre, descripcion))')
       .eq('id', orderId)
       .single()
 
@@ -186,7 +187,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     texto += `PRODUCTOS:\n`
     texto += `-`.repeat(50) + '\n'
     order.order_items?.forEach((item, idx) => {
-      texto += `${idx + 1}. ${item.products?.nombre || 'Producto'}\n`
+      texto += `${idx + 1}. ${item.products ? nombreConVariedad(item.products.nombre, item.products.descripcion) : 'Producto'}\n`
       texto += `   Cantidad: ${item.cantidad} x ${formatCurrency(item.precio_unitario)}\n`
       texto += `   Subtotal: ${formatCurrency(item.subtotal)}\n\n`
     })
@@ -299,7 +300,7 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
               <tbody>
                 {order.order_items?.map((item, idx) => (
                   <tr key={idx} className="border-b">
-                    <td className="py-2">{item.products?.nombre || 'Producto'}</td>
+                    <td className="py-2">{item.products ? nombreConVariedad(item.products.nombre, item.products.descripcion) : 'Producto'}</td>
                     <td className="text-center">{item.cantidad}</td>
                     <td className="text-right">{formatCurrency(item.precio_unitario)}</td>
                     <td className="text-right font-bold">{formatCurrency(item.subtotal)}</td>

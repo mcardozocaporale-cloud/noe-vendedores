@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSession, formatCurrency } from '@/lib/auth'
+import { getSession, formatCurrency, nombreConVariedad } from '@/lib/auth'
 import { IconX } from '@/lib/icons'
 
 interface LineItem {
@@ -19,6 +19,7 @@ interface LineItem {
 interface ProductoBusqueda {
   id: string
   nombre: string
+  descripcion?: string
   precio_unitario: number
   stock: number
 }
@@ -61,7 +62,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
   async function cargarOrden() {
     const { data, error: err } = await supabase
       .from('orders')
-      .select('id, numero_orden, estado, order_items(id, product_id, cantidad, precio_unitario, products(nombre))')
+      .select('id, numero_orden, estado, order_items(id, product_id, cantidad, precio_unitario, products(nombre, descripcion))')
       .eq('id', orderId)
       .single()
 
@@ -82,7 +83,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
       (data.order_items || []).map((it: any) => ({
         id: it.id,
         product_id: it.product_id,
-        nombre: it.products?.nombre || 'Producto',
+        nombre: it.products ? nombreConVariedad(it.products.nombre, it.products.descripcion) : 'Producto',
         cantidad: it.cantidad,
         precio_unitario: it.precio_unitario,
       }))
@@ -94,7 +95,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
     const texto = busqueda.trim().replace(/,/g, ' ')
     const { data } = await supabase
       .from('products')
-      .select('id, nombre, precio_unitario, stock')
+      .select('id, nombre, descripcion, precio_unitario, stock')
       .eq('activo', true)
       .or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`)
       .limit(8)
@@ -109,7 +110,8 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
       nuevos[existente].cantidad += 1
       setItems(nuevos)
     } else {
-      setItems([...items, { id: null, product_id: p.id, nombre: p.nombre, cantidad: 1, precio_unitario: p.precio_unitario }])
+      const nombre = nombreConVariedad(p.nombre, p.descripcion)
+      setItems([...items, { id: null, product_id: p.id, nombre, cantidad: 1, precio_unitario: p.precio_unitario }])
     }
     setBusqueda('')
     setResultados([])
@@ -228,7 +230,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
                   onClick={() => agregarProducto(p)}
                   className="w-full text-left p-2 rounded hover:bg-neo-light flex justify-between items-center text-sm"
                 >
-                  <span>{p.nombre}</span>
+                  <span>{nombreConVariedad(p.nombre, p.descripcion)}</span>
                   <span className="text-neo-orange font-bold">{formatCurrency(p.precio_unitario)} +</span>
                 </button>
               ))}
