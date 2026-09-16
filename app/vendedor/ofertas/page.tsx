@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 import { comprimirImagen } from '@/lib/imageUtils'
 import { IconCamera, IconAlertTriangle, IconTag, IconChevronDown } from '@/lib/icons'
+import { InfoDosier, DosierSeccion, DosierEjemplo, DosierBotonAyuda } from '@/components/InfoDosier'
 
 const ADMIN_EMAIL = 'admin@neomercado.com'
 
@@ -105,6 +106,7 @@ export default function OfertasProveedores() {
   const [historial, setHistorial] = useState<Oferta[]>([])
   const [cargandoHistorial, setCargandoHistorial] = useState(true)
   const [expandida, setExpandida] = useState<string | null>(null)
+  const [dosierAbierto, setDosierAbierto] = useState(false)
 
   useEffect(() => {
     const session = getSession()
@@ -196,11 +198,56 @@ export default function OfertasProveedores() {
   return (
     <div className="max-w-3xl mx-auto p-4">
       <div className="mb-5">
-        <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Ofertas de proveedores</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Ofertas de proveedores</h1>
+          <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
+        </div>
         <p className="text-gray-500 text-xs">
           Subí la foto o el texto de una oferta que te llegó por WhatsApp — la comparamos contra tu catálogo y tus ofertas anteriores.
         </p>
       </div>
+
+      <InfoDosier open={dosierAbierto} onClose={() => setDosierAbierto(false)} title="Ofertas de proveedores" icon={IconTag}>
+        <DosierSeccion titulo="El problema que resuelve">
+          <p>
+            Hoy una oferta que llega por WhatsApp se lee una vez y se pierde. No hay forma de acordarse qué te ofreció
+            cada proveedor la semana pasada, ni de comparar sistemáticamente contra lo que ya vendés — terminás
+            comprando por costumbre, no por el mejor precio disponible ese día.
+          </p>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Cómo funciona">
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Subís la foto o pegás el texto tal cual te lo mandaron.</li>
+            <li>Una IA lee la imagen o el texto y extrae productos y precios automáticamente.</li>
+            <li>El sistema busca cada producto en tu catálogo y lo cruza con la última vez que ese mismo producto apareció en otra oferta.</li>
+            <li>Te marca "Bajó — conviene" cuando el precio de hoy es mejor que el anterior.</li>
+          </ol>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Beneficio concreto (con datos reales ya cargados)">
+          <p className="mb-2">
+            Con solo 4 catálogos que se subieron de prueba, el sistema ya encontró algo accionable: tu proveedor
+            habitual te cobra el aceite más caro que dos ofertas puntuales de otros mayoristas.
+          </p>
+          <DosierEjemplo>
+            <p><b>Aceite Cañuelas 1.5L</b> — Makro $4.939 → Diarco $4.929 (bajó) → tu depósito habitual $5.375 (subió)</p>
+            <p><b>Aceite Cañuelas 900cc</b> — tu depósito habitual $3.380 → Maxiconsumo $3.000 (bajó $380 por botella)</p>
+          </DosierEjemplo>
+          <p className="mt-2">
+            Multiplicado por el volumen que se compra por mes, esa diferencia es plata real — y sin esta pantalla,
+            nadie la iba a notar porque las dos ofertas llegaron en momentos distintos, por proveedores distintos.
+          </p>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Qué falta para que lea las fotos sola">
+          <p>
+            La lectura automática de imágenes necesita una API de IA paga (centavos por oferta procesada). Mientras
+            no esté activada, se puede seguir cargando lo mismo a mano o pidiendo ayuda para procesar las ofertas —
+            el resto de la pantalla (comparación, historial, alertas de "conviene") funciona igual.
+          </p>
+        </DosierSeccion>
+      </InfoDosier>
 
       <form onSubmit={procesarOferta} className="card mb-6">
         {error && (

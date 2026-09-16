@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getSession, formatCurrency } from '@/lib/auth'
-import { IconPlus } from '@/lib/icons'
+import { IconPlus, IconTruck } from '@/lib/icons'
+import { InfoDosier, DosierSeccion, DosierEjemplo, DosierBotonAyuda } from '@/components/InfoDosier'
 
 const ADMIN_EMAIL = 'admin@neomercado.com'
 const VENTANA_DIAS = 30
@@ -43,6 +44,7 @@ export default function Reposicion() {
 
   const [sumando, setSumando] = useState<string | null>(null)
   const [cantidadASumar, setCantidadASumar] = useState<Record<string, string>>({})
+  const [dosierAbierto, setDosierAbierto] = useState(false)
 
   useEffect(() => {
     const session = getSession()
@@ -173,7 +175,10 @@ export default function Reposicion() {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="mb-5">
-        <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Qué reponer</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Qué reponer</h1>
+          <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
+        </div>
         <p className="text-gray-500 text-xs">
           Productos que se vendieron en los últimos {VENTANA_DIAS} días, ordenados por cuánto stock les queda.
         </p>
@@ -181,6 +186,55 @@ export default function Reposicion() {
           El stock se carga a mano o por Excel — si no está actualizado, estos números no son exactos.
         </p>
       </div>
+
+      <InfoDosier open={dosierAbierto} onClose={() => setDosierAbierto(false)} title="Qué reponer" icon={IconTruck}>
+        <DosierSeccion titulo="El problema que resuelve">
+          <p>
+            Sin esta pantalla, te enterás que te quedaste sin un producto cuando un cliente lo pide y no lo tenés —
+            ahí ya se perdió la venta. O al revés: comprás de más "por las dudas" y esa plata queda parada en la
+            góndola en vez de trabajando en el negocio.
+          </p>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Cómo funciona">
+          <p className="mb-2">Cruza tres datos que ya tenés cargados en el sistema, sin pedirte nada nuevo:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>El stock actual de cada producto.</li>
+            <li>Cuánto vendiste realmente de cada uno en los últimos 30 días (de tus pedidos reales).</li>
+            <li>La última oferta de proveedor que guardaste para ese mismo producto.</li>
+          </ol>
+          <p className="mt-2">
+            Con eso calcula cuántos días de stock te quedan al ritmo de venta actual, y ordena la lista de más
+            urgente a menos urgente.
+          </p>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Beneficio concreto">
+          <DosierEjemplo>
+            <p>
+              <b>Puré de tomate OKEY 520g</b> — con las ventas y el stock reales cargados hoy, aparece como "Urgente":
+              se vendieron 72 unidades en el último mes y ahora mismo hay 0 en stock. Sin esta pantalla, eso se
+              descubre recién cuando un cliente lo pide y no está.
+            </p>
+            <p className="mt-1.5">
+              <b>Aceite Cañuelas 1.5L</b> — no es urgente (hay stock de sobra), pero al lado ya aparece a qué
+              proveedor y precio se consiguió la última vez, sin tener que ir a buscar esa información a otro lado.
+            </p>
+          </DosierEjemplo>
+          <p className="mt-2">
+            Evitás quedarte sin stock de lo que más se vende (venta perdida) y evitás comprar de más de lo que casi
+            no rota (plata inmovilizada) — las dos caras del mismo problema, resueltas en una sola pantalla.
+          </p>
+        </DosierSeccion>
+
+        <DosierSeccion titulo="Limitación a tener en cuenta">
+          <p>
+            El stock no se descuenta solo cuando un cliente compra — depende de que se mantenga actualizado a mano o
+            por Excel. Si eso se automatiza más adelante, esta pantalla se vuelve todavía más precisa sin cambiar
+            nada de cómo se usa.
+          </p>
+        </DosierSeccion>
+      </InfoDosier>
 
       {filas.length === 0 ? (
         <p className="text-gray-500 text-sm py-2">No hay productos con ventas en los últimos {VENTANA_DIAS} días.</p>
