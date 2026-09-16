@@ -197,17 +197,26 @@ export default function Reposicion() {
           </p>
         </DosierSeccion>
 
-        <DosierSeccion titulo="Cómo funciona">
-          <p className="mb-2">Cruza tres datos que ya tenés cargados en el sistema, sin pedirte nada nuevo:</p>
-          <ol className="list-decimal list-inside space-y-1">
-            <li>El stock actual de cada producto.</li>
-            <li>Cuánto vendiste realmente de cada uno en los últimos 30 días (de tus pedidos reales).</li>
-            <li>La última oferta de proveedor que guardaste para ese mismo producto.</li>
-          </ol>
-          <p className="mt-2">
-            Con eso calcula cuántos días de stock te quedan al ritmo de venta actual, y ordena la lista de más
-            urgente a menos urgente.
-          </p>
+        <DosierSeccion titulo="De dónde sale cada dato de la tabla">
+          <ul className="space-y-2.5">
+            <li>
+              <b className="text-neo-dark">Stock</b> — lo que esté cargado ahora en "Editar productos", a mano o por
+              el último Excel que importaste. No se descuenta solo cuando vendés (ver la limitación más abajo).
+            </li>
+            <li>
+              <b className="text-neo-dark">Vendido (30 días)</b> — dato 100% real, no se carga a mano: es la suma de
+              las cantidades de tus pedidos confirmados de los últimos 30 días (los cancelados no cuentan).
+            </li>
+            <li>
+              <b className="text-neo-dark">Días restantes</b> — no es un dato cargado, es una cuenta que hace la
+              pantalla sola: Stock ÷ (Vendido en 30 días ÷ 30). Por eso puede cambiar de un día para el otro sin que
+              nadie toque nada.
+            </li>
+            <li>
+              <b className="text-neo-dark">Última oferta guardada</b> — sale de lo que ya subiste en "Ofertas de
+              proveedores" para ese mismo producto; si nunca apareció en ninguna oferta cargada, muestra "—".
+            </li>
+          </ul>
         </DosierSeccion>
 
         <DosierSeccion titulo="Beneficio concreto">
