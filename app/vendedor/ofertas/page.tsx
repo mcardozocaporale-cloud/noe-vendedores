@@ -197,14 +197,15 @@ export default function OfertasProveedores() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Ofertas de proveedores</h1>
-          <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
-        </div>
+      <div className="mb-4">
+        <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Ofertas de proveedores</h1>
         <p className="text-gray-500 text-xs">
           Subí la foto o el texto de una oferta que te llegó por WhatsApp — la comparamos contra tu catálogo y tus ofertas anteriores.
         </p>
+      </div>
+
+      <div className="mb-5">
+        <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
       </div>
 
       <InfoDosier open={dosierAbierto} onClose={() => setDosierAbierto(false)} title="Ofertas de proveedores" icon={IconTag}>
@@ -237,6 +238,11 @@ export default function OfertasProveedores() {
           <p className="mt-2">
             Multiplicado por el volumen que se compra por mes, esa diferencia es plata real — y sin esta pantalla,
             nadie la iba a notar porque las dos ofertas llegaron en momentos distintos, por proveedores distintos.
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Y ojo: esto salió de mirar <b>solamente la primera hoja</b> de cada uno de esos 4 catálogos — los cuatro
+            juntos tienen más de 130 páginas. Ya con eso aparecieron estas diferencias; con todo el catálogo
+            cargado y la IA activada, la ventaja de tener esto andando solo es mucho mayor.
           </p>
         </DosierSeccion>
 

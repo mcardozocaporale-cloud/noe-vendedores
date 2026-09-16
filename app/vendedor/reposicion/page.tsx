@@ -174,17 +174,18 @@ export default function Reposicion() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Qué reponer</h1>
-          <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
-        </div>
+      <div className="mb-4">
+        <h1 className="text-lg font-semibold text-neo-dark tracking-tight leading-tight">Qué reponer</h1>
         <p className="text-gray-500 text-xs">
           Productos que se vendieron en los últimos {VENTANA_DIAS} días, ordenados por cuánto stock les queda.
         </p>
         <p className="text-gray-400 text-xs mt-1">
           El stock se carga a mano o por Excel — si no está actualizado, estos números no son exactos.
         </p>
+      </div>
+
+      <div className="mb-5">
+        <DosierBotonAyuda onClick={() => setDosierAbierto(true)} />
       </div>
 
       <InfoDosier open={dosierAbierto} onClose={() => setDosierAbierto(false)} title="Qué reponer" icon={IconTruck}>
