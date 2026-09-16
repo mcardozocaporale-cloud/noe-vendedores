@@ -247,3 +247,12 @@ export function IconChevronDown(props: IconProps) {
     </svg>
   )
 }
+
+export function IconTag(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12.5 3.5h6a1 1 0 0 1 1 1v6a1 1 0 0 1-.3.7l-9 9a1 1 0 0 1-1.4 0l-6.5-6.5a1 1 0 0 1 0-1.4l9-9a1 1 0 0 1 .7-.3Z" />
+      <circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}

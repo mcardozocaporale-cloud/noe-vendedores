@@ -1,0 +1,592 @@
+<title>Variantes de Catálogo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F4F1;
+    --surface:#FFFFFF;
+    --ink:#1E1B18;
+    --ink-soft:#6B6560;
+    --ink-faint:#9A938C;
+    --border:#E4E0DA;
+    --accent:#F2843B;
+    --accent-ink:#FFFFFF;
+    --tag-bg:#E4CFF2;
+    --tag-ink:#8B5CB8;
+    --price-band:#1E1B18;
+    --price-band-ink:#FFFFFF;
+    --shadow-tint:30,27,24;
+    --code-bg:#F0EEEA;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171512;
+      --surface:#211E1A;
+      --ink:#F3F1ED;
+      --ink-soft:#B0A99F;
+      --ink-faint:#7C766E;
+      --border:#37332C;
+      --accent:#F2954F;
+      --accent-ink:#1E1B18;
+      --tag-bg:#3A2E45;
+      --tag-ink:#D9BFEE;
+      --price-band:#F3F1ED;
+      --price-band-ink:#1E1B18;
+      --shadow-tint:0,0,0;
+      --code-bg:#2A2620;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171512;
+    --surface:#211E1A;
+    --ink:#F3F1ED;
+    --ink-soft:#B0A99F;
+    --ink-faint:#7C766E;
+    --border:#37332C;
+    --accent:#F2954F;
+    --accent-ink:#1E1B18;
+    --tag-bg:#3A2E45;
+    --tag-ink:#D9BFEE;
+    --price-band:#F3F1ED;
+    --price-band-ink:#1E1B18;
+    --shadow-tint:0,0,0;
+    --code-bg:#2A2620;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    padding-inline:20px;
+    padding-block:32px 64px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+  header.page{margin-bottom:40px}
+  header.page h1{
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    margin:0 0 8px;
+  }
+  header.page p{
+    font-size:14px;
+    color:var(--ink-soft);
+    max-width:62ch;
+    line-height:1.55;
+    margin:0;
+  }
+  header.page p + p{margin-top:8px}
+
+  section.variant{
+    margin-bottom:56px;
+    padding-top:32px;
+    border-top:1px solid var(--border);
+  }
+  section.variant:first-of-type{border-top:none;padding-top:0}
+
+  .variant-head{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+    margin-bottom:20px;
+  }
+  .variant-title{display:flex;align-items:baseline;gap:10px}
+  .variant-letter{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--accent);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:2px 6px;
+  }
+  .variant-title h2{font-size:19px;font-weight:700;letter-spacing:-0.01em;margin:0}
+  .variant-title span.tag-current{
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  ul.changes{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 10px;
+    max-width:520px;
+  }
+  ul.changes li{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--code-bg);
+    border-radius:4px;
+    padding:3px 8px;
+    white-space:nowrap;
+  }
+
+  .cards-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:16px;
+  }
+
+  /* ---- shared bottle placeholder ---- */
+  .thumb{
+    aspect-ratio:1/0.95;
+    background:linear-gradient(160deg,var(--code-bg),var(--surface));
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:12px;
+  }
+  .thumb svg{width:44%;height:auto;opacity:.55}
+
+  /* =========================================================
+     VARIANT A — Actual (baseline, sin cambios)
+  ========================================================== */
+  .v-actual .pcard{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    position:relative;
+  }
+  .v-actual .pill{
+    display:inline-block;
+    background:var(--tag-bg);
+    color:var(--tag-ink);
+    font-size:11px;
+    font-weight:700;
+    border-radius:999px;
+    padding:3px 10px;
+    margin-bottom:10px;
+  }
+  .v-actual .code{
+    position:absolute;
+    top:14px;
+    right:14px;
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  .v-actual h3{font-size:14px;font-weight:700;margin:0 0 2px;line-height:1.3}
+  .v-actual .desc{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px}
+  .v-actual .price-band{
+    background:var(--price-band);
+    color:var(--price-band-ink);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .v-actual .price-band .unit{font-size:11px;font-weight:500;opacity:.75;margin-left:4px}
+  .v-actual .price-bulk{
+    background:var(--code-bg);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+  }
+  .v-actual .price-bulk b{color:var(--ink);font-size:13px}
+  .v-actual .stepper{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .v-actual .stepper button{
+    width:32px;height:32px;flex-shrink:0;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .v-actual .stepper .qty{
+    flex:1;min-width:0;
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .v-actual .add-btn{
+    width:100%;
+    border:none;
+    border-radius:8px;
+    padding:9px;
+    font-size:13px;
+    font-weight:700;
+    background:#F7C9A3;
+    color:#fff;
+    cursor:pointer;
+  }
+  .v-actual .add-btn.active{background:var(--accent)}
+
+  /* =========================================================
+     VARIANT B — Elevada (sin borde, tipografía como protagonista)
+  ========================================================== */
+  .v-elevated .pcard{
+    background:var(--surface);
+    border-radius:20px;
+    padding:18px;
+    position:relative;
+    box-shadow:0 1px 2px rgba(var(--shadow-tint),.05), 0 10px 26px rgba(var(--shadow-tint),.09);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .v-elevated .pcard:hover{
+    transform:translateY(-3px);
+    box-shadow:0 2px 4px rgba(var(--shadow-tint),.06), 0 18px 36px rgba(var(--shadow-tint),.14);
+  }
+  .v-elevated .thumb{border-radius:14px}
+  .v-elevated .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--tag-ink);
+    margin-bottom:8px;
+  }
+  .v-elevated .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--tag-ink)}
+  .v-elevated .eyebrow .code{margin-left:auto;color:var(--ink-faint);font-weight:600;letter-spacing:0;text-transform:none}
+  .v-elevated h3{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin:0 0 2px;line-height:1.25}
+  .v-elevated .desc{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px}
+  .v-elevated .price-main{display:flex;align-items:baseline;gap:6px;margin-bottom:2px}
+  .v-elevated .price-main .amount{font-size:26px;font-weight:800;letter-spacing:-0.02em;color:var(--accent)}
+  .v-elevated .price-main .unit{font-size:12px;color:var(--ink-faint);font-weight:600}
+  .v-elevated .price-bulk{font-size:12px;color:var(--ink-soft);margin-bottom:16px}
+  .v-elevated .price-bulk b{color:var(--ink)}
+  .v-elevated .stepper{
+    display:flex;
+    align-items:center;
+    background:var(--code-bg);
+    border-radius:999px;
+    padding:4px;
+    margin-bottom:12px;
+    width:fit-content;
+  }
+  .v-elevated .stepper button{
+    width:28px;height:28px;
+    border-radius:999px;
+    border:none;
+    background:transparent;
+    color:var(--ink);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .v-elevated .stepper .qty{
+    width:32px;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+  }
+  .v-elevated .add-btn{
+    width:100%;
+    border:none;
+    border-radius:999px;
+    padding:11px;
+    font-size:13px;
+    font-weight:700;
+    background:var(--accent);
+    color:var(--accent-ink);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+
+  /* =========================================================
+     VARIANT C — Estructurada (referencia Increase: jerarquía de radios,
+     tags 4px, cifras en monoespaciada, barra de acento)
+  ========================================================== */
+  .v-structured .pcard{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:0;
+    overflow:hidden;
+    position:relative;
+  }
+  .v-structured .pcard::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:3px;
+    background:var(--border);
+    transition:background .15s ease;
+  }
+  .v-structured .pcard:hover::before,
+  .v-structured .pcard:focus-within::before{background:var(--accent)}
+  .v-structured .pcard-inner{padding:14px 14px 14px 17px}
+  .v-structured .row-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .v-structured .tag{
+    display:inline-block;
+    background:var(--code-bg);
+    color:var(--ink-soft);
+    border:1px solid var(--border);
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    border-radius:4px;
+    padding:2px 6px;
+  }
+  .v-structured .code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint)}
+  .v-structured h3{font-size:13.5px;font-weight:700;margin:0 0 1px;line-height:1.3}
+  .v-structured .desc{font-size:12px;color:var(--ink-soft);margin:0 0 10px}
+  .v-structured hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+  .v-structured .price-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+  .v-structured .price-row .label{font-size:11.5px;color:var(--ink-soft)}
+  .v-structured .price-row .value{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;color:var(--ink)}
+  .v-structured .price-row.bulk .value{color:var(--ink-soft);font-size:12.5px}
+  .v-structured .stepper{
+    display:flex;
+    margin:12px 0 10px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .v-structured .stepper button{
+    width:32px;height:32px;flex-shrink:0;
+    border:none;
+    background:var(--code-bg);
+    color:var(--ink-soft);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .v-structured .stepper .qty{
+    flex:1;min-width:0;
+    text-align:center;
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:600;
+  }
+  .v-structured .add-btn{
+    width:100%;
+    border:none;
+    border-radius:8px;
+    padding:9px;
+    font-size:12.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    background:var(--code-bg);
+    color:var(--ink-faint);
+    cursor:pointer;
+  }
+  .v-structured .add-btn.active{background:var(--accent);color:var(--accent-ink)}
+
+  footer.note{
+    margin-top:48px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    font-size:12.5px;
+    color:var(--ink-faint);
+  }
+
+  @media (max-width:480px){
+    body{padding-inline:16px}
+    header.page h1{font-size:22px}
+    .variant-head{align-items:flex-start}
+  }
+</style>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="bottle" viewBox="0 0 40 64">
+    <path d="M15 2h10v8l4 6v42a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V16l4-6V2z"
+      fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    <line x1="11" y1="26" x2="29" y2="26" stroke="currentColor" stroke-width="2.2"/>
+  </symbol>
+</svg>
+
+<header class="page">
+  <h1>Variantes de catálogo</h1>
+  <p>Misma tarjeta de producto, tres tratamientos visuales distintos, para elegir uno antes de aplicarlo a todo <span class="mono">/vendedor/catalogo</span>. Contenido real: Aceite Cañuelas 1.5lt y Aceite Cocinero 900cc.</p>
+  <p>A es el diseño actual, como referencia. B y C son las dos alternativas nuevas — tocan sombra, tipografía y radios de forma bien visible, no ajustes de 1-2px.</p>
+</header>
+
+<!-- ============ VARIANT A ============ -->
+<section class="variant v-actual">
+  <div class="variant-head">
+    <div class="variant-title">
+      <span class="variant-letter">A</span>
+      <h2>Actual</h2>
+      <span class="tag-current">sin cambios · referencia</span>
+    </div>
+  </div>
+  <div class="cards-row">
+    <article class="pcard">
+      <span class="code">#1422</span>
+      <span class="pill">Bulto x12</span>
+      <div class="thumb"><svg><use href="#bottle"/></svg></div>
+      <h3>Aceite CAÑUELAS girasol 1.5lt</h3>
+      <p class="desc">Aceite CAÑUELAS girasol 1.5lt</p>
+      <div class="price-band">$ 5.980 <span class="unit">unitario</span></div>
+      <div class="price-bulk"><b>$ 5.502</b> c/u comprando por bulto x12</div>
+      <div class="stepper">
+        <button aria-label="Restar">−</button>
+        <div class="qty">0</div>
+        <button aria-label="Sumar">+</button>
+      </div>
+      <button class="add-btn">Agregar</button>
+    </article>
+    <article class="pcard">
+      <span class="code">#745</span>
+      <span class="pill">Bulto x15</span>
+      <div class="thumb"><svg><use href="#bottle"/></svg></div>
+      <h3>Aceite COCINERO girasol 900cc</h3>
+      <p class="desc">Aceite COCINERO girasol 900cc</p>
+      <div class="price-band">$ 3.676 <span class="unit">unitario</span></div>
+      <div class="price-bulk"><b>$ 3.382</b> c/u comprando por bulto x15</div>
+      <div class="stepper">
+        <button aria-label="Restar">−</button>
+        <div class="qty">0</div>
+        <button aria-label="Sumar">+</button>
+      </div>
+      <button class="add-btn active">Agregar</button>
+    </article>
+  </div>
+</section>
+
+<!-- ============ VARIANT B ============ -->
+<section class="variant v-elevated">
+  <div class="variant-head">
+    <div class="variant-title">
+      <span class="variant-letter">B</span>
+      <h2>Elevada</h2>
+    </div>
+    <ul class="changes">
+      <li>sin borde</li>
+      <li>sombra flotante marcada + hover</li>
+      <li>radio 20px</li>
+      <li>precio grande en naranja</li>
+      <li>stepper tipo píldora</li>
+    </ul>
+  </div>
+  <div class="cards-row">
+    <article class="pcard">
+      <div class="eyebrow"><span class="dot"></span>Bulto x12<span class="code">#1422</span></div>
+      <div class="thumb"><svg><use href="#bottle"/></svg></div>
+      <h3>Aceite CAÑUELAS girasol 1.5lt</h3>
+      <p class="desc">Aceite CAÑUELAS girasol 1.5lt</p>
+      <div class="price-main"><span class="amount">$5.980</span><span class="unit">unitario</span></div>
+      <div class="price-bulk"><b>$5.502</b> c/u por bulto x12</div>
+      <div class="stepper">
+        <button aria-label="Restar">−</button>
+        <div class="qty">0</div>
+        <button aria-label="Sumar">+</button>
+      </div>
+      <button class="add-btn">+ Agregar</button>
+    </article>
+    <article class="pcard">
+      <div class="eyebrow"><span class="dot"></span>Bulto x15<span class="code">#745</span></div>
+      <div class="thumb"><svg><use href="#bottle"/></svg></div>
+      <h3>Aceite COCINERO girasol 900cc</h3>
+      <p class="desc">Aceite COCINERO girasol 900cc</p>
+      <div class="price-main"><span class="amount">$3.676</span><span class="unit">unitario</span></div>
+      <div class="price-bulk"><b>$3.382</b> c/u por bulto x15</div>
+      <div class="stepper">
+        <button aria-label="Restar">−</button>
+        <div class="qty">2</div>
+        <button aria-label="Sumar">+</button>
+      </div>
+      <button class="add-btn">+ Agregar</button>
+    </article>
+  </div>
+</section>
+
+<!-- ============ VARIANT C ============ -->
+<section class="variant v-structured">
+  <div class="variant-head">
+    <div class="variant-title">
+      <span class="variant-letter">C</span>
+      <h2>Estructurada</h2>
+    </div>
+    <ul class="changes">
+      <li>barra de acento a la izq.</li>
+      <li>tags cuadrados 4px</li>
+      <li>precios en monoespaciada</li>
+      <li>divisores internos</li>
+      <li>stepper tipo control segmentado</li>
+    </ul>
+  </div>
+  <div class="cards-row">
+    <article class="pcard" tabindex="0">
+      <div class="pcard-inner">
+        <div class="row-top"><span class="tag">Bulto x12</span><span class="code">#1422</span></div>
+        <div class="thumb"><svg><use href="#bottle"/></svg></div>
+        <h3>Aceite CAÑUELAS girasol 1.5lt</h3>
+        <p class="desc">Aceite CAÑUELAS girasol 1.5lt</p>
+        <hr>
+        <div class="price-row"><span class="label">Unitario</span><span class="value">$5.980</span></div>
+        <div class="price-row bulk"><span class="label">Bulto x12</span><span class="value">$5.502 c/u</span></div>
+        <div class="stepper">
+          <button aria-label="Restar">−</button>
+          <div class="qty">0</div>
+          <button aria-label="Sumar">+</button>
+        </div>
+        <button class="add-btn">Agregar</button>
+      </div>
+    </article>
+    <article class="pcard" tabindex="0">
+      <div class="pcard-inner">
+        <div class="row-top"><span class="tag">Bulto x15</span><span class="code">#745</span></div>
+        <div class="thumb"><svg><use href="#bottle"/></svg></div>
+        <h3>Aceite COCINERO girasol 900cc</h3>
+        <p class="desc">Aceite COCINERO girasol 900cc</p>
+        <hr>
+        <div class="price-row"><span class="label">Unitario</span><span class="value">$3.676</span></div>
+        <div class="price-row bulk"><span class="label">Bulto x15</span><span class="value">$3.382 c/u</span></div>
+        <div class="stepper">
+          <button aria-label="Restar">−</button>
+          <div class="qty">1</div>
+          <button aria-label="Sumar">+</button>
+        </div>
+        <button class="add-btn active">Agregar</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<footer class="note">
+  Los botones +/− funcionan (para probar el tacto), el resto es visual. Ninguna variante toca datos ni lógica — es solo para elegir dirección antes de tocar el código del catálogo real.
+</footer>
+
+<script>
+(function(){
+  document.querySelectorAll('.pcard').forEach(function(card){
+    var qtyEl = card.querySelector('.qty');
+    var addBtn = card.querySelector('.add-btn');
+    if(!qtyEl) return;
+    var qty = parseInt(qtyEl.textContent,10) || 0;
+    card.querySelectorAll('.stepper button').forEach(function(btn, i){
+      btn.addEventListener('click', function(){
+        qty = i === 0 ? Math.max(0, qty - 1) : qty + 1;
+        qtyEl.textContent = qty;
+        if(addBtn) addBtn.classList.toggle('active', qty > 0);
+      });
+    });
+  });
+})();
+</script>

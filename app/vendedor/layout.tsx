@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { getSession, clearSession } from '@/lib/auth'
-import { IconHome, IconPlus, IconCart, IconUsers, IconUpload, IconEdit, IconLogOut, IconMenu, IconX } from '@/lib/icons'
+import { IconHome, IconPlus, IconCart, IconUsers, IconUpload, IconEdit, IconTag, IconLogOut, IconMenu, IconX } from '@/lib/icons'
 import type { ComponentType, SVGProps } from 'react'
 
 const ADMIN_EMAIL = 'admin@neomercado.com'
@@ -73,6 +73,7 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
             items: [
               { href: '/vendedor/importar', label: 'Importar Excel', icon: IconUpload },
               { href: '/vendedor/productos', label: 'Editar productos', icon: IconEdit },
+              { href: '/vendedor/ofertas', label: 'Ofertas de proveedores', icon: IconTag },
             ],
           },
         ]
