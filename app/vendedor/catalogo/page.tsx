@@ -184,7 +184,7 @@ export default function CatalogoVendedor() {
             </div>
           </div>
         </div>
-        <div className="bg-white border-b border-gray-200 p-3 shadow-sm">
+        <div className="bg-white border-b border-gray-200 p-3 shadow-[0_2px_8px_rgba(30,27,24,0.04)]">
           <div className="max-w-6xl mx-auto flex gap-2 items-center">
             <IconSearch className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
@@ -269,10 +269,10 @@ export default function CatalogoVendedor() {
 
       {/* Resumen Carrito */}
       {carrito.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-2px_12px_rgba(30,27,24,0.06)]">
           <div className="max-w-6xl mx-auto flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              Total: <b className="text-2xl text-neo-dark">{formatCurrency(total)}</b>
+              Total: <b className="text-2xl text-neo-dark tracking-tight">{formatCurrency(total)}</b>
             </div>
             <Link href="/vendedor/carrito" className="btn-primary">
               Ver Carrito y Confirmar
@@ -339,10 +339,10 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
       {/* Precio unitario y precio por bulto: siempre visibles, se resalta el que aplica según cantidad */}
       <div className="flex flex-col gap-1 mb-2 text-xs">
         <div className={`p-2 rounded ${!negociando && !enModoBulto ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
-          <b>{formatCurrency(producto.precio_unitario)}</b> unitario
+          <b className="tracking-tight">{formatCurrency(producto.precio_unitario)}</b> unitario
         </div>
         <div className={`p-2 rounded ${!negociando && enModoBulto ? 'bg-neo-dark text-white' : 'bg-gray-100'}`}>
-          <b>{formatCurrency(producto.precio_bulto)}</b> c/u comprando por bulto x{producto.factor_bulto}
+          <b className="tracking-tight">{formatCurrency(producto.precio_bulto)}</b> c/u comprando por bulto x{producto.factor_bulto}
         </div>
         {cantidad > 0 && !negociando && (
           <p className="text-[11px] text-gray-500">
@@ -401,7 +401,7 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
 
       <div className="flex items-center gap-1.5 mb-3">
         <button
-          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
           onClick={() => setCantidad(Math.max(0, cantidad - 1))}
         >
           −
@@ -410,10 +410,10 @@ function ProductoCardVendedor({ producto, onAgregar }: ProductoCardVendedorProps
           type="number"
           value={cantidad}
           onChange={(e) => setCantidad(Math.min(9999, Math.max(0, parseInt(e.target.value) || 0)))}
-          className="w-0 flex-1 min-w-0 text-center border border-gray-300 rounded-md py-1.5 text-sm"
+          className="w-0 flex-1 min-w-0 text-center border border-gray-300 rounded-lg py-1.5 text-sm"
         />
         <button
-          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
           onClick={() => setCantidad(cantidad + 1)}
         >
           +
