@@ -14,6 +14,7 @@ interface NavItem {
   label: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
   count?: number
+  tieneAyuda?: boolean
 }
 
 interface NavGroup {
@@ -73,8 +74,8 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
             items: [
               { href: '/vendedor/importar', label: 'Importar Excel', icon: IconUpload },
               { href: '/vendedor/productos', label: 'Editar productos', icon: IconEdit },
-              { href: '/vendedor/ofertas', label: 'Ofertas de proveedores', icon: IconTag },
-              { href: '/vendedor/reposicion', label: 'Qué reponer', icon: IconTruck },
+              { href: '/vendedor/ofertas', label: 'Ofertas de proveedores', icon: IconTag, tieneAyuda: true },
+              { href: '/vendedor/reposicion', label: 'Qué reponer', icon: IconTruck, tieneAyuda: true },
             ],
           },
         ]
@@ -111,6 +112,14 @@ export default function VendedorLayout({ children }: { children: React.ReactNode
                 <span className="flex items-center gap-2.5 truncate">
                   <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
                   <span className="truncate">{item.label}</span>
+                  {item.tieneAyuda && (
+                    <span
+                      className="w-4 h-4 flex-shrink-0 rounded-full bg-neo-orange text-white text-[10px] font-bold flex items-center justify-center"
+                      aria-hidden="true"
+                    >
+                      ?
+                    </span>
+                  )}
                 </span>
                 {!!item.count && <span className="nav-count">{item.count}</span>}
               </Link>
