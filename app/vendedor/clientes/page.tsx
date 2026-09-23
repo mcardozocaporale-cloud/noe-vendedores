@@ -11,6 +11,7 @@ import {
 
 interface Cliente {
   id: string
+  codigo_cliente: string | null
   nombre: string
   apellido: string
   empresa: string | null
@@ -21,6 +22,8 @@ interface Cliente {
   localidad: string | null
   horario_recepcion: string | null
 }
+
+const POR_PAGINA = 20
 
 const clienteVacio = {
   nombre: '',
@@ -59,6 +62,8 @@ export default function ClientesVendedor() {
   const [nuevoCliente, setNuevoCliente] = useState(clienteVacio)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [pagina, setPagina] = useState(1)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
     const session = getSession()
@@ -74,30 +79,40 @@ export default function ClientesVendedor() {
     if (!vendorId) return
     const timeout = setTimeout(() => buscarClientes(), 300)
     return () => clearTimeout(timeout)
-  }, [busqueda, vendorId])
+  }, [busqueda, vendorId, pagina])
+
+  useEffect(() => {
+    setPagina(1)
+  }, [busqueda])
 
   async function buscarClientes() {
     if (!vendorId) return
     setBuscando(true)
 
+    const desde = (pagina - 1) * POR_PAGINA
+    const hasta = desde + POR_PAGINA - 1
+
     let query = supabase
       .from('clientes')
-      .select('id, nombre, apellido, empresa, tipo_documento, numero_documento, telefono, direccion, localidad, horario_recepcion')
+      .select('id, codigo_cliente, nombre, apellido, empresa, tipo_documento, numero_documento, telefono, direccion, localidad, horario_recepcion', { count: 'exact' })
       .eq('vendor_id', vendorId)
       .order('apellido')
-      .limit(30)
+      .range(desde, hasta)
 
     if (busqueda.trim()) {
       const texto = busqueda.trim().replace(/,/g, ' ')
-      query = query.or(`nombre.ilike.%${texto}%,apellido.ilike.%${texto}%,empresa.ilike.%${texto}%,numero_documento.ilike.%${texto}%`)
+      query = query.or(`nombre.ilike.%${texto}%,apellido.ilike.%${texto}%,empresa.ilike.%${texto}%,numero_documento.ilike.%${texto}%,codigo_cliente.ilike.%${texto}%`)
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
     if (!error && data) {
       setResultados(data)
+      setTotal(count || 0)
     }
     setBuscando(false)
   }
+
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA))
 
   function elegirCliente(cliente: Cliente) {
     setClienteActivo({
@@ -201,6 +216,7 @@ export default function ClientesVendedor() {
                         <div className="min-w-0">
                           <div className="font-bold text-neo-dark truncate">
                             {c.apellido ? `${c.apellido}, ${c.nombre}` : c.nombre}
+                            {c.codigo_cliente && <span className="text-gray-400 font-mono font-normal text-xs"> · #{c.codigo_cliente}</span>}
                           </div>
                           {c.empresa && <div className="text-sm text-gray-600 truncate">{c.empresa}</div>}
                           <div className="text-xs text-gray-500 flex items-center gap-3 mt-0.5">
@@ -217,6 +233,26 @@ export default function ClientesVendedor() {
                     </div>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {totalPaginas > 1 && (
+              <div className="flex justify-center items-center gap-3 mb-6">
+                <button
+                  className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pagina <= 1 || buscando}
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                >
+                  ← Anterior
+                </button>
+                <span className="text-sm font-bold">Página {pagina} de {totalPaginas}</span>
+                <button
+                  className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={pagina >= totalPaginas || buscando}
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                >
+                  Siguiente →
+                </button>
               </div>
             )}
 
