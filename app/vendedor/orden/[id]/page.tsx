@@ -182,7 +182,9 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     texto += `Empresa: ${order.datos_comprador.empresa}\n`
     texto += `Dirección: ${order.datos_comprador.direccion}\n`
     texto += `Ciudad: ${order.datos_comprador.ciudad}\n`
-    texto += `Teléfono: ${order.datos_comprador.telefono}\n\n`
+    texto += `Teléfono: ${order.datos_comprador.telefono}\n`
+    if (order.datos_comprador.observaciones) texto += `Observaciones: ${order.datos_comprador.observaciones}\n`
+    texto += `\n`
 
     texto += `PRODUCTOS:\n`
     texto += `-`.repeat(50) + '\n'
@@ -283,6 +285,12 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
                 <p className="text-xs text-gray-600">Teléfono</p>
                 <p className="font-bold">{order.datos_comprador.telefono}</p>
               </div>
+              {order.datos_comprador.observaciones && (
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-600">Observaciones</p>
+                  <p className="font-bold">{order.datos_comprador.observaciones}</p>
+                </div>
+              )}
             </div>
           </div>
 
