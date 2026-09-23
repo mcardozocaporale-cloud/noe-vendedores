@@ -12,7 +12,10 @@ interface LineItem {
   product_id: string
   nombre: string
   cantidad: number
-  precio_unitario: number
+  precio_unitario: number // precio actual, editable
+  precio_lista: number // techo de negociación = precio de lista del producto
+  precio_min: number | null // piso = Precio Liq del Excel
+  precio_bulto: number // respaldo de piso si todavía no hay Precio Liq cargado
   eliminado?: boolean
 }
 
@@ -21,6 +24,8 @@ interface ProductoBusqueda {
   nombre: string
   descripcion?: string
   precio_unitario: number
+  precio_bulto: number
+  precio_min: number | null
   stock: number
 }
 
@@ -62,7 +67,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
   async function cargarOrden() {
     const { data, error: err } = await supabase
       .from('orders')
-      .select('id, numero_orden, estado, order_items(id, product_id, cantidad, precio_unitario, products(nombre, descripcion))')
+      .select('id, numero_orden, estado, order_items(id, product_id, cantidad, precio_unitario, products(nombre, descripcion, precio_unitario, precio_bulto, precio_min))')
       .eq('id', orderId)
       .single()
 
@@ -86,6 +91,11 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
         nombre: it.products ? nombreConVariedad(it.products.nombre, it.products.descripcion) : 'Producto',
         cantidad: it.cantidad,
         precio_unitario: it.precio_unitario,
+        // El techo de negociación es el precio de lista ACTUAL del producto, no el precio con el
+        // que se cargó el pedido (que ya puede ser uno negociado más bajo).
+        precio_lista: it.products?.precio_unitario ?? it.precio_unitario,
+        precio_min: it.products?.precio_min ?? null,
+        precio_bulto: it.products?.precio_bulto ?? it.precio_unitario,
       }))
     )
     setLoading(false)
@@ -95,7 +105,7 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
     const texto = busqueda.trim().replace(/,/g, ' ')
     const { data } = await supabase
       .from('products')
-      .select('id, nombre, descripcion, precio_unitario, stock')
+      .select('id, nombre, descripcion, precio_unitario, precio_bulto, precio_min, stock')
       .eq('activo', true)
       .or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`)
       .limit(8)
@@ -111,7 +121,16 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
       setItems(nuevos)
     } else {
       const nombre = nombreConVariedad(p.nombre, p.descripcion)
-      setItems([...items, { id: null, product_id: p.id, nombre, cantidad: 1, precio_unitario: p.precio_unitario }])
+      setItems([...items, {
+        id: null,
+        product_id: p.id,
+        nombre,
+        cantidad: 1,
+        precio_unitario: p.precio_unitario,
+        precio_lista: p.precio_unitario,
+        precio_min: p.precio_min,
+        precio_bulto: p.precio_bulto,
+      }])
     }
     setBusqueda('')
     setResultados([])
@@ -128,6 +147,16 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
     setItems(nuevos)
   }
 
+  function cambiarPrecio(index: number, precio: number) {
+    const nuevos = [...items]
+    nuevos[index].precio_unitario = precio
+    setItems(nuevos)
+  }
+
+  function rangoDe(item: LineItem) {
+    return { min: item.precio_min ?? item.precio_bulto, max: item.precio_lista }
+  }
+
   function quitarItem(index: number) {
     const nuevos = [...items]
     nuevos[index].eliminado = true
@@ -141,6 +170,18 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
     if (!orderId) return
     if (itemsActivos.length === 0) {
       setError('El pedido no puede quedar sin productos. Si querés cancelarlo, hacelo desde "Ver pedido".')
+      return
+    }
+
+    const fueraDeRango = itemsActivos.filter(it => {
+      const { min, max } = rangoDe(it)
+      return it.precio_unitario < min || it.precio_unitario > max
+    })
+    if (fueraDeRango.length > 0) {
+      setError(`Hay precios fuera del rango permitido:\n${fueraDeRango.map(it => {
+        const { min, max } = rangoDe(it)
+        return `${it.nombre}: entre ${formatCurrency(min)} y ${formatCurrency(max)}`
+      }).join('\n')}`)
       return
     }
 
@@ -245,11 +286,27 @@ export default function EditarOrden({ params }: { params: Promise<{ id: string }
           <div className="space-y-3">
             {items.map((item, idx) => {
               if (item.eliminado) return null
+              const { min: rangoMin, max: rangoMax } = rangoDe(item)
+              const precioInvalido = item.precio_unitario < rangoMin || item.precio_unitario > rangoMax
               return (
-                <div key={idx} className="flex items-center gap-3 border-b pb-3">
-                  <div className="flex-1">
+                <div key={idx} className="flex items-center gap-3 border-b pb-3 flex-wrap">
+                  <div className="flex-1 min-w-[160px]">
                     <p className="font-bold text-sm">{item.nombre}</p>
-                    <p className="text-xs text-gray-600">{formatCurrency(item.precio_unitario)} c/u</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="text-xs text-gray-500">$</span>
+                      <input
+                        type="number"
+                        value={item.precio_unitario}
+                        onChange={e => cambiarPrecio(idx, parseFloat(e.target.value) || 0)}
+                        min={rangoMin}
+                        max={rangoMax}
+                        className={`w-24 text-sm border rounded py-1 px-1.5 ${precioInvalido ? 'border-red-500 border-2' : 'border-gray-300'}`}
+                      />
+                      <span className="text-xs text-gray-500">c/u</span>
+                    </div>
+                    <p className={`text-[11px] mt-0.5 ${precioInvalido ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
+                      Rango permitido: {formatCurrency(rangoMin)} - {formatCurrency(rangoMax)}
+                    </p>
                   </div>
                   <button
                     className="bg-gray-200 w-7 h-7 rounded"
