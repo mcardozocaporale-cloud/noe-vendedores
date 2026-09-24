@@ -100,53 +100,61 @@ export default function DetalleOrden({ params }: { params: Promise<{ id: string 
     if (remitRef.current) {
       const printWindow = window.open('', '', 'height=600,width=800')
       if (printWindow) {
-        printWindow.document.write('<html><head><title>Remito</title>')
+        printWindow.document.write('<html><head><meta charset="utf-8"><title>Remito</title>')
         printWindow.document.write(`<style>
+          @page { size: A4; margin: 14mm; }
           * { box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; margin: 20px; color: #111; }
-          .remito { max-width: 600px; margin: 0 auto; }
+          body { font-family: Arial, sans-serif; margin: 0; color: #111; font-size: 15px; line-height: 1.4; }
+          .remito { max-width: 100%; margin: 0 auto; }
           h1, h2, h3 { margin: 0; }
           p { margin: 0; }
 
           /* Layout */
           .grid { display: grid; }
           .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-          .gap-4 { gap: 16px; }
-          .gap-6 { gap: 24px; }
+          .col-span-2 { grid-column: span 2 / span 2; }
+          .gap-4 { gap: 18px; }
+          .gap-6 { gap: 26px; }
           .flex { display: flex; }
           .justify-between { justify-content: space-between; }
 
           /* Espaciado */
-          .mb-2 { margin-bottom: 8px; }
-          .mb-6 { margin-bottom: 24px; }
-          .pb-6 { padding-bottom: 24px; }
-          .p-4 { padding: 16px; }
-          .py-2 { padding-top: 8px; padding-bottom: 8px; }
+          .mb-2 { margin-bottom: 10px; }
+          .mb-6 { margin-bottom: 28px; }
+          .pb-6 { padding-bottom: 22px; }
+          .p-4 { padding: 18px; }
+          .p-8 { padding: 0 0 24px 0; }
+          .py-2 { padding-top: 10px; padding-bottom: 10px; }
 
           /* Texto */
           .text-center { text-align: center; }
           .text-right { text-align: right; }
           .text-left { text-align: left; }
-          .text-xs { font-size: 11px; }
-          .text-sm { font-size: 13px; }
-          .text-lg { font-size: 18px; }
-          .text-2xl { font-size: 24px; }
+          .text-xs { font-size: 14px; }
+          .text-sm { font-size: 16px; }
+          .text-lg { font-size: 21px; }
+          .text-xl { font-size: 26px; }
+          .text-2xl { font-size: 30px; }
+          .font-semibold { font-weight: 600; }
           .font-bold { font-weight: bold; }
           .font-black { font-weight: 900; }
-          .text-gray-600 { color: #4b5563; }
+          .text-gray-600 { color: #374151; }
           .text-green-600 { color: #16a34a; }
 
           /* Bordes y fondo */
-          .border-b { border-bottom: 1px solid #d1d5db; }
+          .border-b { border-bottom: 1px solid #9ca3af; }
           .border-b-2 { border-bottom: 2px solid #111; }
           .bg-neo-light { background: #FAF4EC; }
           .rounded { border-radius: 8px; }
 
           /* Tabla */
-          table { width: 100%; border-collapse: collapse; }
+          table { width: 100%; border-collapse: collapse; font-size: 16px; }
+          th, td { padding-right: 12px; }
           .w-full { width: 100%; }
 
-          .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+          h3 { font-size: 18px; }
+
+          .footer { text-align: center; font-size: 14px; margin-top: 24px; }
         </style></head><body>`)
         printWindow.document.write(remitRef.current.innerHTML)
         printWindow.document.write('</body></html>')
